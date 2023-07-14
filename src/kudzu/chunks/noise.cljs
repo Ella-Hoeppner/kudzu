@@ -1,6 +1,6 @@
 (ns kudzu.chunks.noise
-  (:require [util :as u]
-            [clojure.walk :refer [postwalk-replace]]
+  (:require [clojure.walk :refer [postwalk-replace]]
+            [kudzu.tools :refer [unquotable]]
             [kudzu.core :refer [combine-chunks]]
             [tools.math :refer [rand-n-sphere-point]]))
 
@@ -40,7 +40,7 @@
 
 ;pcg hash based on https://github.com/riccardoscalco/glsl-pcg-prng
 (def pcg-hash-chunk
-  (u/unquotable
+  (unquotable
    '{:functions {pcg
                  [(uint
                    [x uint]
@@ -377,7 +377,7 @@
 
 ; fractional brownian motion
 (def fbm-chunk
-  (u/unquotable
+  (unquotable
    {:macros
     {'fbm (fn [noise-fn
                noise-dimensions
@@ -481,7 +481,7 @@
 ; based on "Gabor Noise by Example" section 3.3
 ; doi:10.1145/2185520.2185569
 (def gabor-kernel-chunk
-  (u/unquotable
+  (unquotable
    {:macros
     {'gaborKernel
      (fn [dimensions & kernel-args]
@@ -512,7 +512,7 @@
 (def gabor-noise-chunk
   (combine-chunks
    gabor-kernel-chunk
-   (u/unquotable
+   (unquotable
     {:macros
      {'gaborNoise
       (fn gabor-macro [dimensions & args]
@@ -534,8 +534,9 @@
                      (map (fn [frequency]
                             (let [phase (* (rand-fn) Math/PI 2)
                                   offset (cons position-type
-                                               (u/gen dimensions
-                                                      (- (* (rand-fn) 2) 1)))]
+                                               (repeatedly
+                                                dimensions
+                                                #(- (* (rand-fn) 2) 1)))]
                               '(gaborKernel ~dimensions
                                             (- x ~offset)
                                             ~(cons position-type
@@ -554,8 +555,9 @@
                      (map (fn [frequency]
                             (let [phase (* (rand-fn) Math/PI 2)
                                   offset (cons position-type
-                                               (u/gen dimensions
-                                                      (- (* (rand-fn) 2) 1)))]
+                                               (repeatedly
+                                                dimensions
+                                                #(- (* (rand-fn) 2) 1)))]
                               '(gaborKernel ~dimensions
                                             (- x ~offset)
                                             ~(cons position-type
@@ -570,7 +572,7 @@
            :expression (cons fn-name noise-args)}))}})))
 
 (def wobbly-sine-chunk
-  (u/unquotable
+  (unquotable
    {:macros
     {'wobble3D
      (fn wobbly-sine [input rand-fn & args]
@@ -580,12 +582,14 @@
              phase-mod-amplitude-2 (if multiple-amplitudes?
                                      (last args)
                                      phase-mod-amplitude-1)
-             rand-tau #(cons 'vec3 (u/gen 3
-                                          (if valid-arg?
-                                            (rand-fn u/TAU)
-                                            (rand u/TAU))))
-             rand-vec #(cons 'vec3 (u/gen 3
-                                          (if valid-arg?
+             rand-tau #(cons 'vec3
+                             (repeatedly 3
+                                         #(if valid-arg?
+                                            (rand-fn (* Math/PI 2))
+                                            (rand (* Math/PI 2)))))
+             rand-vec #(cons 'vec3
+                             (repeatedly 3
+                                         #(if valid-arg?
                                             (Math/pow 2 (rand-fn -0.3 0.3))
                                             (Math/pow 2 (- (rand 0.6) 0.3)))))
              fn-name (gensym 'wsin)]

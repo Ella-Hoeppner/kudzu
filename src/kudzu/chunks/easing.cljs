@@ -1,5 +1,5 @@
 (ns kudzu.chunks.easing
-  (:require [util :as u]))
+  (:require [kudzu.tools :refer [unquotable]]))
 
 ; From Inigo Quilez's "Remapping Functions" article
 ; https://iquilezles.org/articles/functions/
@@ -174,7 +174,7 @@
                  b))))}})
 
 (def sinc-chunk
-  (u/unquotable
+  (unquotable
    '{:functions
      {sinc
       (float

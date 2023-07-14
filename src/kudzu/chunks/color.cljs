@@ -1,5 +1,4 @@
-(ns kudzu.chunks.color 
-  (:require [util :as u]))
+(ns kudzu.chunks.color)
 
 (def hsl-to-rgb-chunk
   '{:functions {hsl2rgb

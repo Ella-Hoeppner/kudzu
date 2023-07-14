@@ -1,5 +1,5 @@
 (ns kudzu.chunks.misc
-  (:require [util :as u]
+  (:require [kudzu.tools :refer [unquotable]]
             [clojure.walk :refer [postwalk
                                   postwalk-replace]]))
 
@@ -107,7 +107,7 @@
                     (pow value (+ shape 1))))}})
 
 (def gradient-chunk
-  (u/unquotable
+  (unquotable
    {:macros {'findGradient
              (fn [dimensions function-name sample-distance pos]
                (let [gradient-fn-name (gensym 'gradient)

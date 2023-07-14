@@ -1,8 +1,8 @@
 (ns kudzu.chunks.particles
-  (:require [util :as u]))
+  (:require [kudzu.tools :refer [unquotable]]))
 
 (defn particle-vert-source [texture-type]
-  (u/unquotable
+  (unquotable
    (let [glsl-texture-type (if (= texture-type
                                   :f8)
                              'sampler2D
@@ -53,7 +53,7 @@
                        1)))})))
 
 (defn particle-frag-source [texture-type]
-  (u/unquotable
+  (unquotable
    (let [texture-max (texture-type {:f8 1
                                     :u16 '(float "0x0000FFFFu")
                                     :u32 '(float "0xFFFFFFFFu")})

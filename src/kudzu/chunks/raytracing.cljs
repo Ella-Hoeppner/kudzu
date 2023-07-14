@@ -1,5 +1,5 @@
 (ns kudzu.chunks.raytracing
-  (:require [util :as u]
+  (:require [kudzu.tools :refer [unquotable]]
             [clojure.walk :refer [postwalk-replace]]
             [kudzu.core :refer [combine-chunks]]))
 
@@ -94,7 +94,7 @@
                    max-steps 1024
                    termination-threshold 0.0001}}]]
        (let [fn-name (gensym 'march)]
-         (u/unquotable
+         (unquotable
           '{:chunk
             {:functions
              {~fn-name
