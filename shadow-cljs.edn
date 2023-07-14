@@ -1,0 +1,7 @@
+{:deps true
+ :nrepl {:port 8703}
+ :dev-http {8702 "out/"}
+ :builds {:browser {:target :browser
+                    :output-dir "out/js"
+                    :modules {:base
+                              {:init-fn kudzu.examples/init}}}}}
