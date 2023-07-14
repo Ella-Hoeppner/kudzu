@@ -597,16 +597,18 @@
              phase-mod-amplitude-2 (if multiple-amplitudes?
                                      (last args)
                                      phase-mod-amplitude-1)
-             rand-tau #(cons 'vec3
-                             (repeatedly 3
-                                         #(if valid-arg?
-                                            (rand-fn (* Math/PI 2))
-                                            (rand (* Math/PI 2)))))
-             rand-vec #(cons 'vec3
-                             (repeatedly 3
-                                         #(if valid-arg?
-                                            (Math/pow 2 (rand-fn -0.3 0.3))
-                                            (Math/pow 2 (- (rand 0.6) 0.3)))))
+             rand-tau (fn []
+                        (cons 'vec3
+                              (repeatedly 3
+                                          #(if valid-arg?
+                                             (rand-fn (* Math/PI 2))
+                                             (rand (* Math/PI 2))))))
+             rand-vec (fn []
+                        (cons 'vec3
+                              (repeatedly 3
+                                          #(if valid-arg?
+                                             (Math/pow 2 (rand-fn -0.3 0.3))
+                                             (Math/pow 2 (- (rand 0.6) 0.3))))))
              fn-name (gensym 'wsin)]
          {:chunk
           '{:functions
