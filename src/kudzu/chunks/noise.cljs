@@ -1,8 +1,23 @@
 (ns kudzu.chunks.noise
   (:require [clojure.walk :refer [postwalk-replace]]
             [kudzu.tools :refer [unquotable]]
-            [kudzu.core :refer [combine-chunks]]
-            [tools.math :refer [rand-n-sphere-point]]))
+            [kudzu.core :refer [combine-chunks]]))
+
+(defn rand-normals [n rand-fn]
+  (take n (apply concat (repeatedly
+                         (fn []
+                           (let [u1 (rand-fn)
+                                 u2 (rand-fn)
+                                 radius (Math/sqrt (* -2 (Math/log u1)))
+                                 angle (* Math/PI 2 u2)]
+                             (map #(* radius (% angle))
+                                  (list Math/cos Math/sin))))))))
+
+(defn rand-n-sphere-point [n rand-fn]
+  (let [normals (rand-normals n rand-fn)
+        magnitude (Math/sqrt (apply + (map #(* % %) normals)))]
+    (map #(/ % magnitude)
+         normals)))
 
 (def rand-chunk
   '{:functions {rand
