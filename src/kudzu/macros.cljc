@@ -1,5 +1,5 @@
 (ns kudzu.macros
-  (:require [clojure.walk :refer [prewalk]]))
+  (:require [clojure.walk :refer [prewalk-replace]]))
 
 (defn thread-first [x & forms]
   (loop [x x
@@ -26,9 +26,16 @@
         (recur threaded (next forms)))
       x)))
 
+(defn thread-as [expr name & forms]
+  (reduce (fn [result form]
+            (prewalk-replace {name result} form))
+          expr
+          forms))
+
 (def default-macros
   {'-> thread-first
    '->> thread-last
+   'as-> thread-as
    '=-> (fn [var-name & forms]
           (list '=
                 var-name
