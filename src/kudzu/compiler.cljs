@@ -11,9 +11,6 @@
             [kudzu.sorting :refer [sort-fns
                                    sort-structs]]))
 
-(defn parse-int [s]
-  (js/parseInt s))
-
 (defn num->glsl [num]
   (apply str
          (reverse
@@ -220,10 +217,6 @@
                                   statement)
                              e)))))))
 
-(defn int-literal? [x]
-  (and (string? x)
-       (re-matches #"[0-9]+" x)))
-
 (defn precision->glsl [[glsl-type type-precision]]
   (str "precision " type-precision " " glsl-type ";\n"))
 
@@ -320,7 +313,7 @@
            (map uniform->glsl uniforms)
            (map (partial in-out->glsl layout qualifiers "in") inputs)
            (map (partial in-out->glsl layout qualifiers "out") outputs)
-           (map struct->glsl structs)
+           (map struct->glsl (sort-structs structs))
            (map define->glsl defines)
            (mapcat statement->lines global)
            (map function->glsl (sort-fns functions))])))
