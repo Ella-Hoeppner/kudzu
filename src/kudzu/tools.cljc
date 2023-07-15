@@ -22,11 +22,15 @@
                (subs remaining-str 1))))))
 
 (defn clj-name->glsl [clj-name]
-  (multichar-escape (cond-> (str clj-name)
-                      (keyword? clj-name) (subs 1))
-                    [["->" "ARROW"]
-                     ["-" "_"]
-                     ["?" "QUESTION_MARK"]]))
+  (let [name-str (str clj-name)
+        leading-dash? (= (first name-str) "-")]
+    (cond->> (multichar-escape (cond-> name-str
+                                 (or leading-dash? (keyword? clj-name))
+                                 (subs 1))
+                               [["->" "ARROW"]
+                                ["-" "_"]
+                                ["?" "QUESTION_MARK"]])
+      leading-dash? (str "-"))))
 
 #?(:clj
    (defmacro unquotable [& expressions]
