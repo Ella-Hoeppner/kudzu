@@ -20,8 +20,8 @@
          (* projection-matrix
             (vec4 position 0 1))))}))
 
-(def sprog-demos-link
-  "https://github.com/Ella-Hoeppner/sprog/tree/main/src/sprog/demos")
+(def hollow-demos-link
+  "https://github.com/Ella-Hoeppner/hollow/tree/main/src/hollow/demos")
 
 (defn p-element [content]
   (let [e (js/document.createElement "p")]
@@ -45,6 +45,6 @@
               (p-element "Simple vertex shader:")
               (textarea-element example-vert-glsl)
               (p-element (str "For more examples, see the <a href="
-                              sprog-demos-link
-                              ">sprog demos</a>."))]]
+                              hollow-demos-link
+                              ">hollow demos</a>."))]]
        (js/document.body.appendChild element)))))
