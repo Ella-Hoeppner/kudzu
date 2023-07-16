@@ -24,62 +24,62 @@
 (def syntax-example
   (kudzu->glsl 
    '{:main 
-     ;variables are declared with an '=type' syntax
+     ; Variables are declared with an '=type' syntax,
      ((=float x 1)
-      ;int literals must be strings
+      ; int literals must be strings,
       (=int y "1")
-      ;and unsigned ints are the same but with a 'u' suffix
+      ; and unsigned ints are the same but with a 'u' suffix.
       (=uint z "1u")
 
-      ;reasignment
+      ; Reasignment
       (= x 2)
 
-      ;modifiers
+      ; Modifiers
       (++ x)
       (*= x 2)
 
-      ;'/=', "^=" and '%=' modifiers must be strings
+      ; '/=', "^=" and '%=' modifiers must be strings.
       ("/=" x 2)
 
-      ;forward declarations are supported
+      ; Forward declarations are supported
       (=float a)
       (= a 1)
 
-      ;vectors use a constuctor function in addition to a type prefix
+      ; Vectors use a constuctor function in addition to a type prefix
       (=vec4 v (vec4 1 2 3 4))
-      ;mixing types is supported when coercion is possible
+      ; Mixing types is supported when coercion is possible.
       (=ivec2 iv (ivec2 "1" 2))
-      ;glsl swizzle syntax works with vec variables
+      ; GLSL swizzle syntax works with vec variables.
       (=vec2 swizz (vec2 v2.y v2.x))
-      ;Clojure syntax is used for anonymous values
+      ; Clojure syntax is used for anonymous values.
       (=vec2 swizz-two (.xy (fn-that-returns-vec3)))
-      ;.rgba and .stpq are also supported
+      ; .rgba and .stpq are also supported.
       (=vec3 color (.rgb (texture tex (.st position))))
 
-      ;Clojure bools are converted to GLSL bools
-      ;Clojure question mark syntax can be used
+      ; Clojure bools are converted to GLSL bools,
+      ; and question mark syntax can be used.
       (=bool b? true)
-      ;all the usual boolean operators are supported
+      ; All the usual boolean operators are supported.
       (=bool and? (&& true false))
       (=bool not? (! false))
 
-      ;bitwise operators are supported
+      ; Bitwise operators are supported.
       (=uint bit-and (& 0xFF 0x0F))
       (=uint bit-shift-right (>> 0xFF 4))
       (>>= bit-and "3")
 
-      ;matrices are declared similarly to vectors
+      ; Matrices are declared similarly to vectors,
       (=mat4 m4 (mat4 1 2 3 4
                       5 6 7 8
                       9 10 11 12
                       13 14 15 16)) 
-      ;and indexed like arrays
+      ; but indexed like arrays.
       (=vec4 col [m4 "0"])
       (=float val [[m4 "0"] "0"])
       
-      ;outputs are assigned, not declared
+      ; outputs are assigned, 
+      ; as they've already been declared in the :outputs map.
       (= fragColor (vec4 1 0 0 1)))}))
-(js/console.log syntax-example)
 
 (def conditional-example 
   (kudzu->glsl
@@ -213,8 +213,8 @@
 
 (def layout-example
   (kudzu->glsl
-    ;if you need multiple outputs for a single shader
-    ;you can specify the layout like so
+    ; If you need multiple outputs for a single shader,
+    ; you can specify the layout like so
    '{:outputs {Color vec4 
                Direction vec3
                Weight float}
@@ -226,9 +226,9 @@
             (= Weight 1))}))
 
 (def defines-and-constants-example
-  ;kudzu supports defining constant variables, 
-  ;which are replaced with their literal values at compile time
-  ;as well as C-style defines, which are inserted by the precompiler
+  ; Kudzu supports defining constant variables, 
+  ; which are replaced with their literal values at compile time,
+  ; as well as C-style defines, which are inserted by the precompiler
   (kudzu->glsl
    '{:constants {:PI 3.141592
                  two 2
@@ -243,18 +243,16 @@
 
 (def array-example 
   (kudzu->glsl  
-   '{:uniforms {;declaring an array uniform
+   '{:uniforms {; Declaring an array uniform
                 positions [vec3 "5"]}
      :main (;arrays are indexed with an integer literal
             (=vec3 first [positions "0"])
-            ;array literal syntax 
-            (= [vec3 "4"]
-               rest
-               [vec3
-                [positions "1"]
-                [positions "2"]
-                [positions "3"]
-                [positions "4"]]))}))
+            ; Array literal syntax 
+            (= [vec3 "4"] rest [vec3
+                                [positions "1"]
+                                [positions "2"]
+                                [positions "3"]
+                                [positions "4"]]))}))
 
 (def hollow-demos-link
   "https://github.com/Ella-Hoeppner/hollow/tree/main/src/hollow/demos")
