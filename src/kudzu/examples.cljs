@@ -24,12 +24,16 @@
 (def syntax-example
   (kudzu->glsl 
    '{:main 
-     ; Variables are declared with an '=type' syntax,
+     ; Variables are declared with a "=type" syntax.
      ((=float x 1)
       ; int literals must be strings,
       (=int y "1")
-      ; and unsigned ints are the same but with a 'u' suffix.
+      ; and unsigned ints are the same but with a "u" suffix.
       (=uint z "1u")
+
+      ; When declaring a variable, the type of a variable may
+      ; optionally be detached from the = character.
+      (= float x 1)
 
       ; Reasignment
       (= x 2)
@@ -38,12 +42,20 @@
       (++ x)
       (*= x 2)
 
-      ; '/=', "^=" and '%=' modifiers must be strings.
+      ; /=, ^=, and %= modifiers must be strings, as they are not valid
+      ; edn symbols.
       ("/=" x 2)
 
-      ; Forward declarations are supported
-      (=float a)
+      ; Forward declarations are supported by passing nil as the value.
+      (=float a nil)
       (= a 1)
+
+      ; Names may contain characters not normally supported in glsl,
+      ; such as -, ?, !, >, and <.
+      (=float multi-word-name 5)
+      (=bool boolean-value? false)
+      (=int excited-value! "5")
+      (=float degrees->radians (/ 3.1415 180))
 
       ; Vectors use a constuctor function in addition to a type prefix
       (=vec4 v (vec4 1 2 3 4))
@@ -51,14 +63,13 @@
       (=ivec2 iv (ivec2 "1" 2))
       ; GLSL swizzle syntax works with vec variables.
       (=vec2 swizz (vec2 v2.y v2.x))
-      ; Clojure syntax is used for anonymous values.
-      (=vec2 swizz-two (.xy (fn-that-returns-vec3)))
+      ; Accessors can also be called like functions, as in the normal
+      ; cljs dot syntax. This allows for access of fields on unnamed 
+      ; values, such as values returned from functions.
+      (=vec2 swizz-2 (.xy (fn-that-returns-vec3)))
       ; .rgba and .stpq are also supported.
       (=vec3 color (.rgb (texture tex (.st position))))
 
-      ; Clojure bools are converted to GLSL bools,
-      ; and question mark syntax can be used.
-      (=bool b? true)
       ; All the usual boolean operators are supported.
       (=bool and? (&& true false))
       (=bool not? (! false))
@@ -68,16 +79,32 @@
       (=uint bit-shift-right (>> 0xFF 4))
       (>>= bit-and "3")
 
-      ; Matrices are declared similarly to vectors,
+      ; Array types are supported. Array types are declared 
+      ; as [<type> <size>].
+      (= [float "5"] arr nil)
+
+      ; Arrays may be constructed with a vector where the first 
+      ; element is the type, and the remaining elements are the
+      ; entries of the array.
+      (= arr [float 1 2 3 4 5])
+      (= [int "3"] other-arr [int "-1" "0" "1"])
+
+      ; Arrays may be an accessed with a vector containing the name
+      ; of the array, followed by an index.
+      (=float arr-first-value [arr "0"])
+
+      ; Matrices are declared similarly to vectors.
       (=mat4 m4 (mat4 1 2 3 4
                       5 6 7 8
                       9 10 11 12
-                      13 14 15 16)) 
-      ; but indexed like arrays.
+                      13 14 15 16))
+
+      ; Vectors and matrices fields may also be accessed with the
+      ; array accessor syntax.
       (=vec4 col [m4 "0"])
-      (=float val [[m4 "0"] "0"])
-      
-      ; outputs are assigned, 
+      (=float val [col "0"])
+
+      ; Outputs are assigned to like normal variables, 
       ; as they've already been declared in the :outputs map.
       (= fragColor (vec4 1 0 0 1)))}))
 
@@ -162,9 +189,8 @@
            (* 100)
            noise)
       (=->> pos
-            (texture tex)
-            .rgb
-            vec3))}))
+            (+ 1)
+            (/ (vec2 1))))}))
 
 (def struct-example 
   ; Structs are defined in a hash-map, where the key is the name of
@@ -194,7 +220,7 @@
                (* ray.dir t))
             ray.dir))}
      :main
-     (; structs are declared with the "=Name" syntax, like other types.
+     (; Structs are declared with the "=Name" syntax, like other types.
       ; They can be constructed by calling the name with values for 
       ; their fields as arguments. Keep in mind that struct names
       ; are case-sensitive.
@@ -245,9 +271,12 @@
   (kudzu->glsl  
    '{:uniforms {; Declaring an array uniform
                 positions [vec3 "5"]}
-     :main (;arrays are indexed with an integer literal
+     :main (; Arrays are declared with a vector containing the name 
+            ; of the array followed by an integer.
             (=vec3 first [positions "0"])
-            ; Array literal syntax 
+            ; Arrays may be constructed with a vector where the first 
+            ; element is the type, and the remaining elements are the
+            ; entries of the array.
             (= [vec3 "4"] rest [vec3
                                 [positions "1"]
                                 [positions "2"]

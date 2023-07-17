@@ -29,7 +29,8 @@
                                  (subs 1))
                                [["->" "ARROW"]
                                 ["-" "_"]
-                                ["?" "QUESTION_MARK"]])
+                                ["?" "QUESTION_MARK"]
+                                ["!" "EXCLAMATION_MARK"]])
       leading-dash? (str "-"))))
 
 #?(:clj
