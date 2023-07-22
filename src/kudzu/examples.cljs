@@ -51,10 +51,9 @@
       (= a 1)
 
       ; Names may contain characters not normally supported in glsl,
-      ; such as -, ?, !, >, and <.
+      ; such as -, ?, >, and <.
       (=float multi-word-name 5)
       (=bool boolean-value? false)
-      (=int excited-value! "5")
       (=float degrees->radians (/ 3.1415 180))
 
       ; Vectors use a constuctor function in addition to a type prefix
