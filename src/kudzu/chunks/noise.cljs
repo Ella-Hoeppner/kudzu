@@ -31,12 +31,12 @@
   (combine-chunks rand-chunk
                   '{:functions
                     {randNorm
-                     {([vec2] vec2)
-                      ([x]
-                       (=float angle (* 6.283185307179586 (rand x)))
-                       (=float radius
-                               (sqrt (* -2 (log (rand (+ x (vec2 100 -50)))))))
-                       (* radius (vec2 (cos angle) (sin angle))))}}}))
+                     (vec2
+                      [x vec2]
+                      (=float angle (* 6.283185307179586 (rand x)))
+                      (=float radius
+                              (sqrt (* -2 (log (rand (+ x (vec2 100 -50)))))))
+                      (* radius (vec2 (cos angle) (sin angle))))}}))
 
 (def rand-sphere-chunk
   (combine-chunks rand-normal-chunk
