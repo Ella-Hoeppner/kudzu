@@ -22,8 +22,8 @@
             (vec4 position 0 1))))}))
 
 (def syntax-example
-  (kudzu->glsl 
-   '{:main 
+  (kudzu->glsl
+   '{:main
      ; Variables are declared with a "=type" syntax.
      ((=float x 1)
       ; int literals must be strings,
@@ -107,7 +107,7 @@
       ; as they've already been declared in the :outputs map.
       (= fragColor (vec4 1 0 0 1)))}))
 
-(def conditional-example 
+(def conditional-example
   (kudzu->glsl
    '{:main ((=vec3 color)
 
@@ -124,7 +124,7 @@
                        (vec3 1)
                        (vec3 0))))}))
 
-(def loop-example 
+(def loop-example
   (kudzu->glsl
    '{:main
      ((=vec3 color)
@@ -134,7 +134,7 @@
       ; a binding vector that takes a name and an end value.
       (:for [x 10]
             (* color x))
-      
+
       ; You can also add an initial value,
       (:for [y 0 10]
             (* color y))
@@ -144,7 +144,7 @@
 
       ; The second syntax is more C-like, when finer-grained
       ; control is needed.
-      (:for (=uint i 0) (<= i 0xFF) (>> i 3)
+      (:for (=uint i "0u") (<= i "255u") (>> i "3u")
             (*= color y))
 
       ; while loops are similar, taking a single expression.
@@ -158,7 +158,7 @@
       ; that fall out of scope once the block is finished.
       (:block
        (=float unreachable 0))
-      
+
       ; This would throw an error, as "unreachable" is no
       ; longer in scope.
       (++ unreachable))}))
@@ -191,7 +191,7 @@
             (+ 1)
             (/ (vec2 1))))}))
 
-(def struct-example 
+(def struct-example
   ; Structs are defined in a hash-map, where the key is the name of
   ; the struct, and the value is a vector of the struct's fields and
   ; their types.
@@ -205,7 +205,7 @@
       Record
       [pos vec3
        material Material]
-      
+
       ; and can be defined in any order, as they're sorted at compile time.
       Material
       [albedo vec3]}
@@ -240,12 +240,12 @@
   (kudzu->glsl
     ; If you need multiple outputs for a single shader,
     ; you can specify the layout like so
-   '{:outputs {Color vec4 
+   '{:outputs {Color vec4
                Direction vec3
                Weight float}
      :layout {Color 0
-               Direction 1
-               Weight 2}
+              Direction 1
+              Weight 2}
      :main ((= Color (vec4 1))
             (= Direction (vec3 0))
             (= Weight 1))}))
@@ -266,8 +266,8 @@
             (:if (all (equal :zero (vec3 0)))
                  (= x tau)))}))
 
-(def array-example 
-  (kudzu->glsl  
+(def array-example
+  (kudzu->glsl
    '{:uniforms {; Declaring an array uniform
                 positions [vec3 "5"]}
      :main (; Arrays are declared with a vector containing the name 

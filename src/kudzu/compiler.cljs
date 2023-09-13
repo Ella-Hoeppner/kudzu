@@ -177,19 +177,23 @@
                         2 loop-args
                         3 loop-args
                         (throw (str "KUDZU: Invalid for loop definition "
-                                    loop-definition)))]
+                                    loop-definition)))
+                      parse-value (fn [value]
+                                    (if (number? value)
+                                      (str value)
+                                      (expression->glsl value)))]
                   [(str "for (int "
                         (clj-name->glsl binding-name)
                         " = "
-                        (clj-name->glsl initial-value)
+                        (parse-value initial-value)
                         "; "
                         (clj-name->glsl binding-name)
                         " < "
-                        (clj-name->glsl max-value)
+                        (parse-value max-value)
                         "; "
                         (clj-name->glsl binding-name)
                         (if increment-value
-                          (str " += " increment-value)
+                          (str " += " (parse-value increment-value))
                           "++")
                         ") {")
                    1]))
