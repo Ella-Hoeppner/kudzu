@@ -5,26 +5,32 @@
     {xRotationMatrix
      (mat3
       [angle float]
+      (=float c (cos angle))
+      (=float s (sin angle))
       (mat3 1 0 0
-            0 (cos angle) (- 0 (sin angle))
-            0 (sin angle) (cos angle)))}})
+            0 c (- s)
+            0 s (- c)))}})
 
 (def y-rotation-matrix-chunk
   '{:functions
     {yRotationMatrix
      (mat3
       [angle float]
-      (mat3 (cos angle) 0 (sin angle)
+      (=float c (cos angle))
+      (=float s (sin angle))
+      (mat3 c 0 s
             0 1 0
-            (- 0 (sin angle)) 0 (cos angle)))}})
+            (- s) 0 c))}})
 
 (def z-rotation-matrix-chunk
   '{:functions
     {zRotationMatrix
      (mat3
       [angle float]
-      (mat3 (cos angle) (sin angle) 0
-            (- 0 (sin angle)) (cos angle) 0
+      (=float c (cos angle))
+      (=float s (sin angle))
+      (mat3 c s 0
+            (- s) c 0
             0 0 1))}})
 
 (def axis-rotation-chunk
@@ -36,15 +42,24 @@
       (= axis (normalize axis))
       (=float s (sin angle))
       (=float c (cos angle))
-      (=float oc (- 1 c))
-      (mat3 (+ (* oc axis.x axis.x) c)
-            (- (* oc axis.x axis.y) (* axis.z s))
-            (+ (* oc axis.z axis.x) (* axis.y s))
+      (=float -c (- 1 c))
 
-            (+ (* oc axis.x axis.y) (* axis.z s))
-            (+ (* oc axis.y axis.y) c)
-            (- (* oc axis.y axis.z) (* axis.x s))
+      (=float -cxy (* -c axis.x axis.y))
+      (=float -czx (* -c axis.z axis.x))
+      (=float -cyz (* -c axis.y axis.z))
 
-            (- (* oc axis.z axis.x) (* axis.y s))
-            (+ (* oc axis.y axis.z) (* axis.x s))
-            (+ (* oc axis.z axis.z) c)))}})
+      (=float zs (* axis.z s))
+      (=float ys (* axis.y s))
+      (=float xs (* axis.x s))
+
+      (mat3 (+ (* -c axis.x axis.x) c)
+            (- -cxy zs)
+            (+ -czx ys)
+
+            (+ -cxy zs)
+            (+ (* -c axis.y axis.y) c)
+            (- -cyz xs)
+            
+            (- -czx ys)
+            (+ -cyz xs)
+            (+ (* -c axis.z axis.z) c)))}})
