@@ -6,4 +6,6 @@ Created primarily for use within [hollow](https://github.com/Ella-Hoeppner/hollo
 
 See src/kudzu/examples.cljs for some trivial examples, or the [hollow demos](https://github.com/Ella-Hoeppner/hollow/tree/main/src/hollow/demos) for some more sophisticated examples.
 
-Most of the commit history is in [hollow](https://github.com/Ella-Hoeppner/hollow/tree/main), as the two libraries were developed in a single repo for most of the development history.
+Most of the commit history is in [hollow](https://github.com/Ella-Hoeppner/hollow/tree/main), as the two libraries were developed in a single repo before being separated.
+
+Created by [Ella Hoeppner](https://github.com/Ella-Hoeppner) and [Fay Carsons](https://github.com/FayCarsons).

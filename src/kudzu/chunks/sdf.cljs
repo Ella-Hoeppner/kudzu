@@ -5,20 +5,18 @@
 
 ; SDFs based on https://iquilezles.org/articles/distfunctions/
 (def sphere-sdf-chunk
-  '{:functions {sdSphere
+  '{:functions {sd-sphere
                 (float
                  [pos vec3
-                  spherePos vec3
                   radius float]
-                 (- (length (- pos spherePos)) radius))}})
+                 (- (length pos) radius))}})
 
 (def box-sdf-chunk
-  '{:functions {sdBox
+  '{:functions {sdf-box
                 (float
                  [pos vec3
-                  boxPos vec3
-                  boxDim vec3]
-                 (=vec3 q (- (abs (- pos boxPos)) boxDim))
+                  dims vec3]
+                 (=vec3 q (- (abs pos) dims))
                  (+ (length (max q 0))
                     (min (max q.x (max q.y q.z)) 0)))}})
 
@@ -26,11 +24,10 @@
   '{:functions {sdBoxframe
                 (float
                  [pos vec3
-                  boxPos vec3
-                  boxDim vec3
-                  width float]
-                 (= pos (- (abs pos) boxDim))
-                 (=vec3 q (- (abs (+ (- pos boxPos) width)) width))
+                  dims vec3
+                  thickness float]
+                 (= pos (- (abs pos) dims))
+                 (=vec3 q (- (abs (+ pos thickness)) thickness))
                  (min
                   (min (+ (length (max (vec3 pos.x q.y q.z) 0))
                           (min (max pos.x (max q.y q.z)) 0))
@@ -40,23 +37,21 @@
                      (min (max q.x (max q.y pos.z)) 0))))}})
 
 (def torus-sdf-chunk
-  '{:functions {sdTorus (float
-                         [pos vec3
-                          torusPos vec3
-                          t vec2]
-                         (= pos (- pos torusPos))
-                         (=vec2 q (vec2 (- (length pos.xz) t.x) pos.y))
-                         (- (length q) t.y))}})
+  '{:functions {sd-torus (float
+                          [pos vec3
+                           radius float
+                           thickness float]
+                          (=vec2 q (vec2 (- (length pos.xz) radius)
+                                         thickness))
+                          (- (length q) t.y))}})
 
 (def capped-torus-sdf-chunk
-  '{:functions {sdCappedTorus
+  '{:functions {sd-capped-torus
                 (float
                  [pos vec3
-                  torusPos vec3
                   sc vec2
                   ra float
                   rb float]
-                 (= pos (- pos torusPos))
                  (= pos.x (abs pos.x))
 
                  (=float k (if (> (* sc.y pos.x)
@@ -69,14 +64,12 @@
                              (* 2 ra k))) rb))}})
 
 (def link-sdf-chunk
-  '{:functions {sdLink
+  '{:functions {sd-link
                 (float
                  [pos vec3
-                  linkPos vec3
                   le float
                   r1 float
                   r2 float]
-                 (= pos (- pos linkPos))
                  (=vec3 q (vec3 pos.x
                                 (max (- (abs pos.y) le)
                                      0)
@@ -86,12 +79,11 @@
                                         r1) q.z)
                                r2))))}})
 
-(def capped-cylinder-chunk
+(def capped-cylinder-sdf-chunk
   '{:functions
-    {sdCylinder
+    {sd-cylinder
      (float
       [pos vec3
-       cylinderPos vec3
        a vec3
        b vec3
        radius float]
@@ -119,34 +111,30 @@
 
 ; angle = sin/cos  of angle
 (def cone-sdf-chunk
-  '{:functions {sdCone (float
-                        [pos vec3
-                         conePos vec3
-                         angle vec2
-                         height float]
-                        (= pos (- pos conePos))
-                        (=vec2 q (* height (vec2 (/ angle.x angle.y) -1)))
+  '{:functions {sd-cone (float
+                         [pos vec3
+                          angle vec2
+                          height float]
+                         (=vec2 q (* height (vec2 (/ angle.x angle.y) -1)))
 
-                        (=vec2 w (vec2 (length pos.xz) pos.y))
-                        (=vec2 a (- w (*  q (clamp (/ (dot w q)
-                                                      (dot q q))
-                                                   0 1))))
-                        (=vec2 b (- w (* q (vec2 (clamp (/ w.x q.x) 0 1) 1))))
+                         (=vec2 w (vec2 (length pos.xz) pos.y))
+                         (=vec2 a (- w (*  q (clamp (/ (dot w q)
+                                                       (dot q q))
+                                                    0 1))))
+                         (=vec2 b (- w (* q (vec2 (clamp (/ w.x q.x) 0 1) 1))))
 
-                        (=float k (sign q.y))
-                        (=float d (min (dot a a) (dot b b)))
-                        (=float s (max (* k (- (* w.x  q.y) (* w.y q.x)))
-                                       (* k (-  w.y q.y))))
+                         (=float k (sign q.y))
+                         (=float d (min (dot a a) (dot b b)))
+                         (=float s (max (* k (- (* w.x  q.y) (* w.y q.x)))
+                                        (* k (-  w.y q.y))))
 
-                        (* (sqrt d) (sign s)))}})
+                         (* (sqrt d) (sign s)))}})
 
 (def hex-prism-sdf-chunk
-  '{:functions {sdHexprism
+  '{:functions {sd-hexagonal-prism
                 (float
                  [pos vec3
-                  hexpPos vec3
                   h vec2]
-                 (= pos (abs (- pos hexpPos)))
                  (=vec3 k (vec3 -0.8660254 0.5 0.57735))
                  (-= pos.xy (* 2 (min (dot k.xy  pos.xy) 0) k.xy))
 
@@ -162,14 +150,12 @@
                     (length (max d 0))))}})
 
 (def capsule-sdf-chunk
-  '{:functions {sdCapsule
+  '{:functions {sd-capsule
                 (float
                  [pos vec3
-                  capPos vec3
                   a vec3
                   b vec3
                   r float]
-                 (= pos (- pos capPos))
                  (=vec3 pa (- pos a))
                  (=vec3 ba (- b a))
 
@@ -180,36 +166,34 @@
 
 ;TODO fix this, cannot figure out what's wrong w it -Fay
 #_(def octahedron-sdf-chunk
-    '{:functions {sdOctahedron
-                  {([vec3 vec3 float] float)
-                   ([pos octaPos s]
-                    (= pos (abs (- pos octaPos)))
+    '{:functions {sd-octahedron
+                  (float
+                   [pos vec3
+                    s float]
+                   (= pos (abs pos))
 
-                    (=float m (- (+ pos.x pos.y pos.z) s))
-                    (=vec3 q (vec3 0))
-                    ("if" (< (* pos.x 3) m)
-                          (= q pos))
-                    ("else if" (< (* pos.y 3) m)
-                               (= q pos.yzx))
-                    ("else if" (< (* pos.z 3) m)
-                               (= q pos.zxy))
-                    ("else" (return (* m 0.57735027)))
+                   (=float m (- (+ pos.x pos.y pos.z) s))
+                   (=vec3 q (vec3 0))
+                   ("if" (< (* pos.x 3) m)
+                         (= q pos))
+                   ("else if" (< (* pos.y 3) m)
+                              (= q pos.yzx))
+                   ("else if" (< (* pos.z 3) m)
+                              (= q pos.zxy))
+                   ("else" (return (* m 0.57735027)))
 
-                    (=float k (clamp (* 0.5 (- q.z (+ q.y s)))
-                                     0
-                                     s))
-                    (length (vec3 q.x
-                                  (- q.y (+ s k))
-                                  (- q.z k))))}}})
+                   (=float k (clamp (* 0.5 (- q.z (+ q.y s)))
+                                    0
+                                    s))
+                   (length (vec3 q.x
+                                 (- q.y (+ s k))
+                                 (- q.z k))))}})
 
 (def pyramid-sdf-chunk '{:functions
-                         {sdPyramid
+                         {sd-pyramid
                           (float
                            [pos vec3
-                            pyramidPos vec3
                             h float]
-                           (= pos (- pos pyramidPos))
-
                            (=float m2 (+ (* h h) 0.25))
 
                            (= pos.xz (abs pos.xz))
@@ -249,8 +233,8 @@
                                     (sign (max q.z (- 0 pos.y))))))}})
 
 
-
-(defn get-multi-dimension-elongate-chunk [sdf-fn-name]
+; todo: replace with a macro
+#_(defn get-multi-dimension-elongate-chunk [sdf-fn-name]
   (postwalk-replace
    {:fn-name sdf-fn-name}
    '{:functions {opElongate
@@ -266,30 +250,6 @@
                   (:fn-name q  #_(args here)))}}))
 
 ; sdf operations
-(def union-chunk
-  '{:functions
-    {union
-     (float
-      [d1 float
-       d2 float]
-      (min d1 d2))}})
-
-(def subtraction-chunk
-  '{:functions
-    {subtraction
-     (float
-      [d1 float
-       d2 float]
-      (max (- 0 d1) d2))}})
-
-(def intersection-chunk
-  '{:functions
-    {intersection
-     (float
-      [d1 float
-       d2 float]
-      (max d1 d2))}})
-
 (def smooth-union-chunk
   '{:functions
     {smoothUnion
@@ -321,7 +281,6 @@
       (+ (mix d2 d1 h) (* k h (- 1 h))))}})
 
 ; transformations
-
 (def onion-chunk
   '{:functions
     {onion
@@ -330,7 +289,7 @@
        h float]
       (- (abs d) h))}})
 
-(def twistX-chunk
+(def twist-x-chunk
   '{:functions
     {twistX
      (float
@@ -342,7 +301,7 @@
       (=vec3 q (vec3 (* m pos.yz) pos.x))
       q)}})
 
-(def twistY-chunk
+(def twist-y-chunk
   '{:functions {twistY
                 (float
                  [pos vec3
