@@ -9,7 +9,7 @@
       (=float s (sin angle))
       (mat3 1 0 0
             0 c (- s)
-            0 s (- c)))}})
+            0 s c))}})
 
 (def y-rotation-matrix-chunk
   '{:functions
