@@ -21,7 +21,7 @@
                     (min (max q.x (max q.y q.z)) 0)))}})
 
 (def box-frame-sdf-chunk
-  '{:functions {sdBoxframe
+  '{:functions {sd-box-frame
                 (float
                  [pos vec3
                   dims vec3
@@ -42,8 +42,8 @@
                            radius float
                            thickness float]
                           (=vec2 q (vec2 (- (length pos.xz) radius)
-                                         thickness))
-                          (- (length q) t.y))}})
+                                         pos.y))
+                          (- (length q) thickness))}})
 
 (def capped-torus-sdf-chunk
   '{:functions {sd-capped-torus

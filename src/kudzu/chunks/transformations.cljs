@@ -2,7 +2,7 @@
 
 (def x-rotation-matrix-chunk
   '{:functions
-    {xRotationMatrix
+    {x-rotation-matrix
      (mat3
       [angle float]
       (=float c (cos angle))
@@ -13,7 +13,7 @@
 
 (def y-rotation-matrix-chunk
   '{:functions
-    {yRotationMatrix
+    {y-rotation-matrix
      (mat3
       [angle float]
       (=float c (cos angle))
@@ -24,7 +24,7 @@
 
 (def z-rotation-matrix-chunk
   '{:functions
-    {zRotationMatrix
+    {z-rotation-matrix
      (mat3
       [angle float]
       (=float c (cos angle))
@@ -35,7 +35,7 @@
 
 (def axis-rotation-chunk
   '{:functions
-    {axisRotationMatrix
+    {axis-rotation-matrix
      (mat3
       [axis vec3
        angle float]
