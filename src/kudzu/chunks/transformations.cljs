@@ -42,24 +42,24 @@
       (= axis (normalize axis))
       (=float s (sin angle))
       (=float c (cos angle))
-      (=float -c (- 1 c))
+      (=float neg-c (- 1 c))
 
-      (=float -cxy (* -c axis.x axis.y))
-      (=float -czx (* -c axis.z axis.x))
-      (=float -cyz (* -c axis.y axis.z))
+      (=float neg-cxy (* neg-c axis.x axis.y))
+      (=float neg-czx (* neg-c axis.z axis.x))
+      (=float neg-cyz (* neg-c axis.y axis.z))
 
       (=float zs (* axis.z s))
       (=float ys (* axis.y s))
       (=float xs (* axis.x s))
 
-      (mat3 (+ (* -c axis.x axis.x) c)
-            (- -cxy zs)
-            (+ -czx ys)
+      (mat3 (+ (* neg-c axis.x axis.x) c)
+            (- neg-cxy zs)
+            (+ neg-czx ys)
 
-            (+ -cxy zs)
-            (+ (* -c axis.y axis.y) c)
-            (- -cyz xs)
-            
-            (- -czx ys)
-            (+ -cyz xs)
-            (+ (* -c axis.z axis.z) c)))}})
+            (+ neg-cxy zs)
+            (+ (* neg-c axis.y axis.y) c)
+            (- neg-cyz xs)
+
+            (- neg-czx ys)
+            (+ neg-cyz xs)
+            (+ (* neg-c axis.z axis.z) c)))}})
