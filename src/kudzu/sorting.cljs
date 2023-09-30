@@ -38,8 +38,9 @@
    (into {}
          (mapv (fn [[fn-name fn-content]]
                  [fn-name
-                  (intersection (set (keys functions))
-                                (inner-symbols fn-content))])
+                  (disj (intersection (set (keys functions))
+                                      (inner-symbols fn-content))
+                        fn-name)])
                functions))))
 
 (defn sort-structs [structs]
