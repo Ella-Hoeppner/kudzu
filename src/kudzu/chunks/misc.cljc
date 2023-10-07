@@ -1,5 +1,6 @@
 (ns kudzu.chunks.misc
-  (:require [kudzu.tools :refer [unquotable]]
+  (:require [kudzu.tools :refer [generalize-float-functions
+                                 unquotable]]
             [clojure.walk :refer [postwalk
                                   postwalk-replace]]))
 
@@ -46,9 +47,10 @@
                     minDim))}})
 
 (def sigmoid-chunk
-  '{:functions {sigmoid (float
-                         [x float]
-                         (/ 1 (+ 1 (exp (- 0 x)))))}})
+  (generalize-float-functions
+   '{:functions {sigmoid (float
+                          [x float]
+                          (/ 1 (+ 1 (exp (- 0 x)))))}}))
 
 (def sympow-chunk
   '{:functions
@@ -105,6 +107,15 @@
                   scale float]
                  (/ (pow (* shape scale) shape)
                     (pow value (+ shape 1))))}})
+
+(def wave-chunk
+  (generalize-float-functions
+   (unquotable
+    '{:functions
+      {osc (float [x float] (sin (* x ~(* 2 Math/PI))))
+       saw (float [x float] (- (mod (* 2 (+ x 0.5)) 2) 1))
+       tri (float [x float] (- (abs (- (* 2 (mod (- 0.5 (* 2 x)) 2)) 2))
+                               1))}})))
 
 (def gradient-chunk
   (unquotable
