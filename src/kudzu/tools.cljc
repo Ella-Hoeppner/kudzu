@@ -32,6 +32,34 @@
                                 ["?" "QUESTION_MARK"]])
       leading-dash? (str "-"))))
 
+(defn generalize-float-functions [chunk]
+  (update
+   chunk
+   :functions
+   (fn [fs]
+     (reduce
+      (fn [new-functions [f-name f-body]]
+        (assoc new-functions
+               f-name
+               (if (and (not (vector? f-body))
+                        (= (first f-body) 'float)
+                        (= (count (second f-body)) 2)
+                        (= (second (second f-body)) 'float))
+                 (into
+                  [f-body]
+                  (map (fn [vec-size]
+                         (let [vec-type (symbol (str "vec" vec-size))
+                               arg-name (first (second f-body))]
+                           (list vec-type
+                                 [arg-name vec-type]
+                                 (cons vec-type
+                                       (map #(list f-name (list % arg-name))
+                                            (take vec-size '(.x .y .z .w)))))))
+                       (range 2 5)))
+                 f-body)))
+      {}
+      fs))))
+
 #?(:clj
    (defmacro unquotable [& expressions]
      (let [quote-replacement (gensym 'kudzu_REPLACED_QUOTE)
