@@ -53,7 +53,7 @@
                   [res vec2]
                   (=float min-dim (min res.x res.y))
                   (=vec2 pos (/ (- gl_FragCoord.xy
-                                   (* 0.5 (- size min-dim)))
+                                   (* 0.5 (- res min-dim)))
                                 min-dim))
                   ~(if bi? '(uni->bi pos) 'pos))}}
               (when (nil? resolution)
