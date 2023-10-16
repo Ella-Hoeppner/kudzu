@@ -19,9 +19,11 @@
                  int highp
                  usampler2D highp}
      :uniforms {tex :sampler-type
-                size vec2}
+                resolution vec2}
      :outputs {fragColor :pixel-type}
-     :main ((= fragColor (texture tex (/ gl_FragCoord.xy size))))}))
+     :main ((= fragColor
+               (texture tex
+                        (/ gl_FragCoord.xy resolution))))}))
 
 (def rescale-chunk
   '{:functions
@@ -36,15 +38,6 @@
          (* (- newMax newMin)
             (/ (- x oldMin)
                (- oldMax oldMin)))))}})
-
-(def pos-chunk
-  '{:functions {getPos
-                (vec2
-                 []
-                 (=float minDim (min size.x size.y))
-                 (/ (- gl_FragCoord.xy
-                       (* 0.5 (- size minDim)))
-                    minDim))}})
 
 (def sigmoid-chunk
   (generalize-float-functions

@@ -1,5 +1,6 @@
 (ns kudzu.macros
-  (:require [clojure.walk :refer [prewalk-replace]]))
+  (:require [kudzu.tools :refer [unquotable]]
+            [clojure.walk :refer [prewalk-replace]]))
 
 (defn thread-first [x & forms]
   (loop [x x
@@ -32,6 +33,42 @@
           expr
           forms))
 
+(defn pixel-pos [& [bi-or-uni resolution]]
+  (unquotable
+   (let [bi? (cond (or (nil? bi-or-uni)
+                       (= bi-or-uni :bi))
+                   true
+
+                   (= bi-or-uni :uni)
+                   false
+
+                   :else (throw (str "KUDZU: Invalid option \""
+                                     bi-or-uni
+                                     "\" for pixel-pos")))
+         fn-name (symbol (str "get-pixel-pos-" (if bi? "bi" "uni")))]
+     {:chunk (merge
+              '{:functions
+                {~fn-name
+                 (vec2
+                  [res vec2]
+                  (=float min-dim (min res.x res.y))
+                  (=vec2 pos (/ (- gl_FragCoord.xy
+                                   (* 0.5 (- size min-dim)))
+                                min-dim))
+                  ~(if bi? '(uni->bi pos) 'pos))}}
+              (when (nil? resolution)
+                '{:uniforms {resolution vec2}}))
+      :expression (list fn-name
+                        (cond (nil? resolution)
+                              'resolution
+
+                              (number? resolution)
+                              (list 'vec2
+                                    resolution)
+
+                              :else
+                              resolution))})))
+
 (def default-macros
   {'-> thread-first
    '->> thread-last
@@ -49,4 +86,5 @@
                                var-name)
                          forms)))
    'bi->uni #(list '* 0.5 (list '+ 1 %))
-   'uni->bi #(list '- (list '* 2 %) 1)})
+   'uni->bi #(list '- (list '* 2 %) 1)
+   'pixel-pos pixel-pos})

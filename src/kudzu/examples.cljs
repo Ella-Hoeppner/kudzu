@@ -8,7 +8,7 @@
      :uniforms {resolution vec2}
      :main
      ((= frag-color
-         (vec4 (/ gl_FragCoord.xy resolution)
+         (vec4 (pixel-pos)
                0
                1)))}))
 

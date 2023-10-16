@@ -64,10 +64,10 @@
      '{:precision {float highp
                    int highp}
        :uniforms {radius float
-                  size float}
+                  resolution float}
        :inputs {particlePos vec2}
        :outputs {fragColor ~output-type}
-       :main ((=vec2 pos (/ gl_FragCoord.xy size))
+       :main ((=vec2 pos (/ gl_FragCoord.xy resolution))
               (=float dist (distance pos particlePos))
               (:if (> dist radius)
                    "discard")
@@ -124,7 +124,7 @@
      (= gl_Position (/ gl_Position gl_Position.w)))})
 
 (def particle-frag-3d-source-u32
-  '{:uniforms {size vec2
+  '{:uniforms {resolution vec2
                radius float
                lightPos vec3
                ambientLight float}
