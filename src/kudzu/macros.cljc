@@ -69,6 +69,23 @@
                               :else
                               resolution))})))
 
+(defn grab-pixel [tex-name & offset-params]
+  (let [offset (when offset-params
+                 (case (count offset-params)
+                   1 offset-params
+                   2 (cons 'ivec2 offset-params)
+                   (throw (str "KUDZU: Invalid offset params \""
+                               (apply str
+                                      (interleave (repeat ", ")
+                                                  offset-params))
+                               "\" for grab-pixel"))))]
+    (list 'texelFetch
+          tex-name
+          (if offset
+            (list '+ '(ivec2 gl_FragCoord.xy) offset)
+            '(ivec2 gl_FragCoord.xy))
+          "0")))
+
 (def default-macros
   {'-> thread-first
    '->> thread-last
@@ -87,4 +104,5 @@
                          forms)))
    'bi->uni #(list '* 0.5 (list '+ 1 %))
    'uni->bi #(list '- (list '* 2 %) 1)
-   'pixel-pos pixel-pos})
+   'pixel-pos pixel-pos
+   'grab-pixel grab-pixel})
