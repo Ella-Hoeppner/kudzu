@@ -131,6 +131,7 @@
 (defn is-statement-block? [statement]
   (and (seq? statement)
        (#{"if" :if
+          "when" :when
           "else" :else
           "else-if" "else if" "elseif" "elif" :else-if :elseif :elif
           "while" :while
@@ -140,77 +141,97 @@
 
 (defn statement->lines [statement]
   (if (is-statement-block? statement)
-    (let [[statement-type & statement-args] statement
-          [block-start consumed-statement-args]
-          (cond
-            (#{:if "if"} statement-type)
-            [(str "if ("
-                  (expression->glsl (first statement-args))
-                  ") {")
-             1]
+    (let [[statement-type & statement-args] statement]
+      (if (#{:if "if"} statement-type)
+        (if (not= 3 (count statement-args))
+          (throw
+           (str "KUDZU: Invalid number of argments to :if\n\nArguments given:"
+                (apply str (interleave (repeat "\n") statement-args))))
+          (let [[conditional & clauses] statement-args
+                [true-lines false-lines]
+                (map #(map (partial str "  ")
+                           (if (and (seq? %)
+                                    (= (first %) :block))
+                             (mapcat statement->lines (rest %))
+                             (statement->lines %)))
+                     clauses)]
+            (concat (list (str "if ("
+                               (expression->glsl conditional)
+                               ") {\n"))
+                    true-lines
+                    (list "}\n  else {\n")
+                    false-lines
+                    (list "}\n"))))
+        (let [[block-start consumed-statement-args]
+              (cond
+                (#{:when "when"} statement-type)
+                [(str "if ("
+                      (expression->glsl (first statement-args))
+                      ") {")
+                 1]
 
-            (#{:while "while"} statement-type)
-            [(str "while ("
-                  (expression->glsl (first statement-args))
-                  ") {")
-             1]
+                (#{:while "while"} statement-type)
+                [(str "while ("
+                      (expression->glsl (first statement-args))
+                      ") {")
+                 1]
 
-            (#{:else "else"} statement-type)
-            ["else {" 0]
+                (#{:else "else"} statement-type)
+                ["else {" 0]
 
-            (#{:else-if :elseif :elif "else if" "else-if" "elseif" "elif"}
-             statement-type)
-            [(str "else if ("
-                  (expression->glsl (first statement-args))
-                  ") {")
-             1]
+                (#{:else-if :elseif :elif "else if" "else-if" "elseif" "elif"}
+                 statement-type)
+                [(str "else if ("
+                      (expression->glsl (first statement-args))
+                      ") {")
+                 1]
 
-            (#{:for "for"} statement-type)
-            (if (vector? (first statement-args))
-              (let [loop-definition (first statement-args)
-                    [binding-name & loop-args] loop-definition]
-                (validate-name binding-name
-                               (str " for loop " loop-definition))
-                (let [[initial-value max-value increment-value]
-                      (case (count loop-args)
-                        1 [0 (first loop-args)]
-                        2 loop-args
-                        3 loop-args
-                        (throw (str "KUDZU: Invalid for loop definition "
-                                    loop-definition)))
-                      parse-value (fn [value]
-                                    (if (number? value)
-                                      (str value)
-                                      (expression->glsl value)))]
-                  [(str "for (int "
-                        (clj-name->glsl binding-name)
-                        " = "
-                        (parse-value initial-value)
-                        "; "
-                        (clj-name->glsl binding-name)
-                        " < "
-                        (parse-value max-value)
-                        "; "
-                        (clj-name->glsl binding-name)
-                        (if increment-value
-                          (str " += " (parse-value increment-value))
-                          "++")
+                (#{:for "for"} statement-type)
+                (if (vector? (first statement-args))
+                  (let [loop-definition (first statement-args)
+                        [binding-name & loop-args] loop-definition]
+                    (validate-name binding-name
+                                   (str " for loop " loop-definition))
+                    (let [[initial-value max-value increment-value]
+                          (case (count loop-args)
+                            1 [0 (first loop-args)]
+                            2 loop-args
+                            3 loop-args
+                            (throw (str "KUDZU: Invalid for loop definition "
+                                        loop-definition)))
+                          parse-value (fn [value]
+                                        (if (number? value)
+                                          (str value)
+                                          (expression->glsl value)))]
+                      [(str "for (int "
+                            (clj-name->glsl binding-name)
+                            " = "
+                            (parse-value initial-value)
+                            "; "
+                            (clj-name->glsl binding-name)
+                            " < "
+                            (parse-value max-value)
+                            "; "
+                            (clj-name->glsl binding-name)
+                            (if increment-value
+                              (str " += " (parse-value increment-value))
+                              "++")
+                            ") {")
+                       1]))
+                  [(str "for ("
+                        (join "; "
+                              (map expression->glsl
+                                   (take 3 statement-args)))
                         ") {")
-                   1]))
-              [(str "for ("
-                    (join "; "
-                          (map expression->glsl
-                               (take 3 statement-args)))
-                    ") {")
-               3])
+                   3])
 
-            (#{:block "block"} statement-type)
-            ["{" 0])]
-      (concat (list (str block-start "\n"))
-              (map (partial str "  ")
-                   (mapcat statement->lines
-                           (drop consumed-statement-args statement-args)))
-              (list "}\n")))
+                (#{:block "block"} statement-type)
+                ["{" 0])]
+          (concat (list (str block-start "\n"))
+                  (map (partial str "  ")
+                       (mapcat statement->lines
+                               (drop consumed-statement-args statement-args)))
+                  (list "}\n")))))
     (if (and (seq? statement)
              (= (first statement) 'do))
       (mapcat statement->lines

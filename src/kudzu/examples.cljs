@@ -109,17 +109,44 @@
 
 (def conditional-example
   (kudzu->glsl
-   '{:main ((=vec3 color)
+   '{:main ((=vec3 color (vec3 0 0 0))
 
-            ; Conditional blocks are denoted by a keyword.
-            (:if false
-                 (= color (vec3 1)))
+            ; Conditional blocks are denoted with the :if keyword
+            (:if (= x y)
+                 (= color.r 1)
+                 (= color.b 0.5))
+            ; This compiles to an if block and an else block, with one statement
+            ; per block
+
+            ; To have multiple statements within the true or false clause of an
+            ; :if expression, use :block
+            (:if (= x y)
+                 (:block (= color.r 1)
+                         (= color.g 1))
+                 (= color.b 0.5))
+
+            ; :when works analagously to clj's when. It takes a conditional
+            ; and an arbitrary number of statements and compiles to a single if
+            ; block with no else.
+            (:when (= x y)
+                   (= color.r 1)
+                   (= color.g 1))
+
+            ; You can follow a :when block with an :else block, which also
+            ; accepts an arbitrary number of statements. :else-if is also
+            ; supported, though at that point you may be better off just using 
+            ; nesting :if blocks
+            (:when (= x y)
+                   (= color.r 1)
+                   (= color.g 1))
             (:else-if false
-                      (= color (vec3 0.5)))
-            (:else
-             (= color (vec3 0)))
+                      (= color.g 0)
+                      (= color.b 1))
+            (:else (= color.r 0.5)
+                   (= color.g 0.5)
+                   (= color.b 0.5))
 
-            ; Ternaries are also supported.
+            ; Ternaries are also supported, using the non-keyword if
             (= color (if true
                        (vec3 1)
                        (vec3 0))))}))
@@ -263,8 +290,8 @@
                (* x y)}
      :main ((=float x :PI)
             (=float tau (mul :PI two))
-            (:if (all (equal :zero (vec3 0)))
-                 (= x tau)))}))
+            (:when (all (equal :zero (vec3 0)))
+                   (= x tau)))}))
 
 (def array-example
   (kudzu->glsl
