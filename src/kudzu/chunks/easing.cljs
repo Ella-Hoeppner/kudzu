@@ -4,9 +4,9 @@
 ; From Inigo Quilez's "Remapping Functions" article
 ; https://iquilezles.org/articles/functions/
 
-(def cubic-identity
+(def cubic-almost-identity-chunk
   '{:functions
-    {cubic-identity
+    {cubic-almost-identity
      (float
       [x float
        m float
@@ -24,25 +24,25 @@
             t)
          n))}})
 
-(def sqrt-identity-chunk
+(def sqrt-almost-identity-chunk
   '{:functions
-    {square-identity
+    {square-almost-identity
      (float
       [x float
        n float]
       (sqrt (+ (* x x)
                n)))}})
 
-(def smooth-unit-identity-chunk
+(def unit-almost-identity-chunk
   '{:functions
-    {smooth-identity
+    {unit-almost-identity
      (float
       [x float]
       (* x x (- 2 x)))}})
 
 (def smoothstep-integral-chunk
   '{:functions
-    {integral-smoothstep
+    {smoothstep-integral
      (float
       [x float
        t float]
@@ -58,7 +58,7 @@
 
 (def exponential-impulse-chunk
   '{:functions
-    {expo-impulse
+    {exp-impulse
      (float
       [x float
        k float]
@@ -184,7 +184,7 @@
                     (- (* k x)
                        1)))
        (/ (sin a)
-          abs))}}))
+          a))}}))
 
 (def quadratic-falloff-chunk
   '{:functions
@@ -198,4 +198,3 @@
                  (+ m 1))))
       (/ (- x m)
          (- 1 m)))}})
-
