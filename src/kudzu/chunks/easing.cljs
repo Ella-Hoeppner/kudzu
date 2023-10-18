@@ -11,8 +11,8 @@
       [x float
        m float
        n float]
-      (:if (> x m)
-           (return x))
+      (:when (> x m)
+             (return x))
       (=float a (- (* 2 n)
                    m))
       (=float b (- (* 2 m)
@@ -46,8 +46,8 @@
      (float
       [x float
        t float]
-      (:if (> x t)
-           (return (- x (/ t 2))))
+      (:when (> x t)
+             (return (- x (/ t 2))))
       (* x
          x
          x
@@ -111,8 +111,8 @@
        w float
        x float]
       (= x (abs (- x c)))
-      (:if (> x w)
-           (return 0))
+      (:when (> x w)
+             (return 0))
       (= x (/ x w))
       (- 1
          (* x

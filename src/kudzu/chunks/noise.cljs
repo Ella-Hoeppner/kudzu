@@ -487,10 +487,11 @@
                                     (=float d (dot r r))
 
                                     (:if (< d res.x)
-                                         (= id (dot (+ p b) (vec3 1 57 113)))
-                                         (= res (vec2 d res.x)))
-                                    ("else if" (< d res.y)
-                                               (= res.y d)))))
+                                         (:block
+                                          (= id (dot (+ p b) (vec3 1 57 113)))
+                                          (= res (vec2 d res.x)))
+                                         (:when (< d res.y)
+                                                (= res.y d))))))
                   (vec3 (sqrt res) (abs id)))}})
 
 ; based on "Gabor Noise by Example" section 3.3

@@ -69,8 +69,8 @@
        :outputs {fragColor ~output-type}
        :main ((=vec2 pos (/ gl_FragCoord.xy resolution))
               (=float dist (distance pos particlePos))
-              (:if (> dist radius)
-                   "discard")
+              (:when (> dist radius)
+                     "discard")
               (= fragColor (~output-type ~texture-max 0 0 ~texture-max)))})))
 
 (def particle-vert-3d-source-u32
@@ -133,7 +133,7 @@
     :outputs {fragColor vec4}
     :main
     ((=float horizontalDist (length squarePos))
-     (:if (> horizontalDist 1) "discard")
+     (:when (> horizontalDist 1) "discard")
      (=float depthDist (sqrt (- 1 (* horizontalDist horizontalDist))))
      (=vec3 surfacePos
             (- vertexPos

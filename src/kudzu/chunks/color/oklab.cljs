@@ -134,34 +134,36 @@
        (:if (> (- (* a -1.88170328)
                   (* b 0.80936493))
                1)
-            (= k0 1.19086277)
-            (= k1 1.76576728)
-            (= k2 0.59662641)
-            (= k3 0.75515197)
-            (= k4 0.56771245)
-            (= wl 4.0767416621)
-            (= wm -3.3077115913)
-            (= ws 0.2309699292))
-       (:else-if (> (- (* a 1.81444104)
+            (:block
+             (= k0 1.19086277)
+             (= k1 1.76576728)
+             (= k2 0.59662641)
+             (= k3 0.75515197)
+             (= k4 0.56771245)
+             (= wl 4.0767416621)
+             (= wm -3.3077115913)
+             (= ws 0.2309699292))
+            (:if (> (- (* a 1.81444104)
                        (* b 1.19445276))
                     1)
-                 (= k0 0.73956515)
-                 (= k1 -0.45954404)
-                 (= k2 0.08285427)
-                 (= k3 0.12541070)
-                 (= k4 0.14503204)
-                 (= wl -1.2684380046)
-                 (= wm 2.6097574011)
-                 (= ws -0.3413193965))
-       (:else
-        (= k0 1.35733652)
-        (= k1 -0.00915799)
-        (= k2 -1.15130210)
-        (= k3 -0.50559606)
-        (= k4 0.00692167)
-        (= wl -0.0041960863)
-        (= wm -0.7034186147)
-        (= ws 1.7076147010))
+                 (:block
+                  (= k0 0.73956515)
+                  (= k1 -0.45954404)
+                  (= k2 0.08285427)
+                  (= k3 0.12541070)
+                  (= k4 0.14503204)
+                  (= wl -1.2684380046)
+                  (= wm 2.6097574011)
+                  (= ws -0.3413193965))
+                 (:block
+                  (= k0 1.35733652)
+                  (= k1 -0.00915799)
+                  (= k2 -1.15130210)
+                  (= k3 -0.50559606)
+                  (= k4 0.00692167)
+                  (= wl -0.0041960863)
+                  (= wm -0.7034186147)
+                  (= ws 1.7076147010))))
 
        (=float S (+ k0
                     (* k1 a)
@@ -230,12 +232,12 @@
          L0 float
          cusp vec2]
         (=float t nil)
-        (:if (<= (- (* (- L1 L0) cusp.y)
-                    (* (- cusp.x L0) C1))
-                 0)
-             (= t (/ (* cusp.y L0)
-                     (+ (* C1 cusp.x)
-                        (* cusp.y (- L0 L1))))))
+        (:when (<= (- (* (- L1 L0) cusp.y)
+                      (* (- cusp.x L0) C1))
+                   0)
+               (= t (/ (* cusp.y L0)
+                       (+ (* C1 cusp.x)
+                          (* cusp.y (- L0 L1))))))
         (:else
          (= t (/ (* cusp.y (- L0 1))
                  (+ (* C1
@@ -337,13 +339,13 @@
       gamut-clip-preserve-chroma
       (vec3
        [rgb vec3]
-       (:if (&& (< rgb.r 1)
-                (> rgb.r 0)
-                (< rgb.g 1)
-                (> rgb.g 0)
-                (< rgb.b 1)
-                (> rgb.b 0))
-            (return rgb))
+       (:when (&& (< rgb.r 1)
+                  (> rgb.r 0)
+                  (< rgb.g 1)
+                  (> rgb.g 0)
+                  (< rgb.b 1)
+                  (> rgb.b 0))
+              (return rgb))
        (=vec3 lab (linear-srgb->-oklab rgb))
        (=float L lab.x)
        (=float eps 0.00001)
@@ -368,13 +370,13 @@
       gamut-clip-project-to-0-5
       (vec3
        [rgb vec3]
-       (:if (&& (< rgb.r 1)
-                (> rgb.r 0)
-                (< rgb.g 1)
-                (> rgb.g 0)
-                (< rgb.b 1)
-                (> rgb.b 0))
-            (return rgb))
+       (:when (&& (< rgb.r 1)
+                  (> rgb.r 0)
+                  (< rgb.g 1)
+                  (> rgb.g 0)
+                  (< rgb.b 1)
+                  (> rgb.b 0))
+              (return rgb))
 
        (=vec3 lab (linear-srgb->-oklab rgb))
        (=float L lab.x)
@@ -400,13 +402,13 @@
       gamut-clip-project-to-L-cusp
       (vec3
        [rgb vec3]
-       (:if (&& (< rgb.r 1)
-                (> rgb.r 0)
-                (< rgb.g 1)
-                (> rgb.g 0)
-                (< rgb.b 1)
-                (> rgb.b 0))
-            (return rgb))
+       (:when (&& (< rgb.r 1)
+                  (> rgb.r 0)
+                  (< rgb.g 1)
+                  (> rgb.g 0)
+                  (< rgb.b 1)
+                  (> rgb.b 0))
+              (return rgb))
 
        (=vec3 lab (linear-srgb->-oklab rgb))
        (=float L lab.x)
@@ -434,13 +436,13 @@
       (vec3
        [rgb vec3
         alpha float]
-       (:if (&& (< rgb.r 1)
-                (> rgb.r 0)
-                (< rgb.g 1)
-                (> rgb.g 0)
-                (< rgb.b 1)
-                (> rgb.b 0))
-            (return rgb))
+       (:when (&& (< rgb.r 1)
+                  (> rgb.r 0)
+                  (< rgb.g 1)
+                  (> rgb.g 0)
+                  (< rgb.b 1)
+                  (> rgb.b 0))
+              (return rgb))
 
        (=vec3 lab (linear-srgb->-oklab rgb))
        (=float L lab.x)
@@ -475,13 +477,13 @@
       (vec3
        [rgb vec3
         alpha float]
-       (:if (&& (< rgb.r 1)
-                (> rgb.r 0)
-                (< rgb.g 1)
-                (> rgb.g 0)
-                (< rgb.b 1)
-                (> rgb.b 0))
-            (return rgb))
+       (:when (&& (< rgb.r 1)
+                  (> rgb.r 0)
+                  (< rgb.g 1)
+                  (> rgb.g 0)
+                  (< rgb.b 1)
+                  (> rgb.b 0))
+              (return rgb))
 
        (=vec3 lab (linear-srgb->-oklab rgb))
        (=float L lab.x)
@@ -617,7 +619,7 @@
        (=float s hsl.y)
        (=float l hsl.z)
 
-       (:if (== l 1) (return (vec3 1)))
+       (:when (== l 1) (return (vec3 1)))
        (:else-if (== l 0) (return (vec3 0)))
 
        (=float a (cos (* ~(* Math/PI 2) h)))
@@ -639,26 +641,28 @@
        (=float k2 nil)
 
        (:if (< s mid)
-            (= t (* mid-inv s))
-            (= k1 (* mid C-0))
-            (= k2 (- 1 (/ k1 C-mid)))
+            (:block
+             (= t (* mid-inv s))
+             (= k1 (* mid C-0))
+             (= k2 (- 1 (/ k1 C-mid)))
 
-            (= C (/ (* t k1)
-                    (- 1 (* k2 t)))))
-       (:else (= t (/ (- s mid)
-                      (- 1 mid)))
-              (= k0 C-mid)
-              (= k1 (/ (* (- 1 mid)
-                          C-mid
-                          C-mid
-                          mid-inv
-                          mid-inv)
-                       C-0))
-              (= k2 (- 1 (/ k1 (- C-max C-mid))))
+             (= C (/ (* t k1)
+                     (- 1 (* k2 t)))))
+            (:block
+             (= t (/ (- s mid)
+                     (- 1 mid)))
+             (= k0 C-mid)
+             (= k1 (/ (* (- 1 mid)
+                         C-mid
+                         C-mid
+                         mid-inv
+                         mid-inv)
+                      C-0))
+             (= k2 (- 1 (/ k1 (- C-max C-mid))))
 
-              (= C (+ k0
-                      (/ (* t k1)
-                         (- 1 (* k2 t))))))
+             (= C (+ k0
+                     (/ (* t k1)
+                        (- 1 (* k2 t)))))))
 
        (=vec3 rgb (oklab->linear-srgb (vec3 L (* C a) (* C b))))
        (vec3 (srgb-transfer-function rgb.r)
@@ -691,21 +695,23 @@
 
        (=float s nil)
        (:if (< C C-mid)
-            (=float k1 (* mid C-0))
-            (=float k2 (- 1 (/ k1 C-mid)))
-            (=float t (/ C (+ k1 (* k2 C))))
-            (= s (* t mid)))
-       (:else (=float k0 C-mid)
-              (=float k1 (/ (* (- 1 mid)
-                               C-mid
-                               C-mid
-                               mid-inv
-                               mid-inv)
-                            C-0))
-              (=float k2 (- 1 (/ k1 (- C-max C-mid))))
+            (:block
+             (=float k1 (* mid C-0))
+             (=float k2 (- 1 (/ k1 C-mid)))
+             (=float t (/ C (+ k1 (* k2 C))))
+             (= s (* t mid)))
+            (:block
+             (=float k0 C-mid)
+             (=float k1 (/ (* (- 1 mid)
+                              C-mid
+                              C-mid
+                              mid-inv
+                              mid-inv)
+                           C-0))
+             (=float k2 (- 1 (/ k1 (- C-max C-mid))))
 
-              (=float t (/ (- C k0)
-                           (+ k1 (* k2 (- C k0)))))
-              (= s (+ mid (* t (- 1 mid)))))
+             (=float t (/ (- C k0)
+                          (+ k1 (* k2 (- C k0)))))
+             (= s (+ mid (* t (- 1 mid))))))
 
        (vec3 h s (toe L)))}}))

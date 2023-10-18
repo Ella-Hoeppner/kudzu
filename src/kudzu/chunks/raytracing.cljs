@@ -29,11 +29,11 @@
                       (=float c (- (dot offset offset)
                                    (* sphereRadius sphereRadius)))
                       (=float discriminant (- (* halfB halfB) c))
-                      (:if (> discriminant 0)
-                           (=float discriminantSqrt (sqrt discriminant))
-                           (return (- 0
-                                      (vec2 (+ halfB discriminantSqrt)
-                                            (- halfB discriminantSqrt)))))
+                      (:when (> discriminant 0)
+                             (=float discriminantSqrt (sqrt discriminant))
+                             (return (- 0
+                                        (vec2 (+ halfB discriminantSqrt)
+                                              (- halfB discriminantSqrt)))))
                       (vec2 0))}}))
 
 ; based on https://iquilezles.org/articles/boxfunctions/
@@ -57,12 +57,12 @@
 
                   (=float tN (max (max t1.x t1.y) t1.z))
                   (=float tF (min (min t2.x t2.y) t2.z))
-                  (:if (|| (> tN tF)
-                           (< tF 0))
-                       (return (BoxIntersection "false"
-                                                0
-                                                0
-                                                (vec3 0))))
+                  (:when (|| (> tN tF)
+                             (< tF 0))
+                         (return (BoxIntersection "false"
+                                                  0
+                                                  0
+                                                  (vec3 0))))
                   (BoxIntersection "true"
                                    tN
                                    tF
@@ -105,11 +105,11 @@
                (:for (=int i "0") (< i ~(str max-steps)) (++ i)
                      (=float distanceEstimate
                              (~sdf-name (+ ray.pos (* t ray.dir))))
-                     (:if (< (abs distanceEstimate)
-                             ~termination-threshold)
-                          (return t))
+                     (:when (< (abs distanceEstimate)
+                               ~termination-threshold)
+                            (return t))
                      (+= t (* distanceEstimate ~step-factor))
-                     (:if (> t maxDistance) "break"))
+                     (:when (> t maxDistance) "break"))
                -1)}}
             :expression ~(list fn-name ray maxDistance)})))}}))
 
@@ -172,7 +172,7 @@
      :default-return-expression default-return-expression
      :voxel-hit-expression
      (concat
-      (list :if
+      (list :when
             '(voxelFilled voxelCoords)
             '(=VoxelIntersection voxelIntersection
                                  (VoxelIntersection "true"
@@ -214,25 +214,27 @@
                 (min (/ (- (vec3 voxelCoords) ray.pos) ray.dir)
                      (/ (- (vec3 (+ (vec3 voxelCoords) 1)) ray.pos) ray.dir)))
          (=float dist (max (max t.x t.y) t.z))
-         (:if (>= dist maxDist) (return :default-return-expression))
+         (:when (>= dist maxDist) (return :default-return-expression))
          :voxel-hit-expression
          (:if (< tMax.x tMax.y)
               (:if (< tMax.z tMax.x)
-                   (+= tMax.z delta.z)
-                   (+= voxelCoords.z step.z)
-                   (= norm (vec3 0 0 (- "0.0" (float step.z)))))
-              (:else
-               (+= tMax.x delta.x)
-               (+= voxelCoords.x step.x)
-               (= norm (vec3 (- "0.0" (float step.x)) 0 0))))
-         (:else (:if (< tMax.z tMax.y)
-                     (+= tMax.z delta.z)
-                     (+= voxelCoords.z step.z)
-                     (= norm (vec3 0 0 (- "0.0" (float step.z)))))
-                (:else
-                 (+= tMax.y delta.y)
-                 (+= voxelCoords.y step.y)
-                 (= norm (vec3 0 (- "0.0" (float step.y)) 0)))))
+                   (:block
+                    (+= tMax.z delta.z)
+                    (+= voxelCoords.z step.z)
+                    (= norm (vec3 0 0 (- "0.0" (float step.z)))))
+                   (:block
+                    (+= tMax.x delta.x)
+                    (+= voxelCoords.x step.x)
+                    (= norm (vec3 (- "0.0" (float step.x)) 0 0))))
+              (:if (< tMax.z tMax.y)
+                   (:block
+                    (+= tMax.z delta.z)
+                    (+= voxelCoords.z step.z)
+                    (= norm (vec3 0 0 (- "0.0" (float step.z)))))
+                   (:block
+                    (+= tMax.y delta.y)
+                    (+= voxelCoords.y step.y)
+                    (= norm (vec3 0 (- "0.0" (float step.y)) 0))))))
         :default-return-expression)}})))
 
 (defn get-column-intersection-chunk [return-type
@@ -247,7 +249,7 @@
      :default-return-expression default-return-expression
      :column-hit-expression
      (concat
-      '(:if (columnFilled gridCoords))
+      '(:when (columnFilled gridCoords))
       hit-expression)}
     '{:functions
       {findColumnIntersection
@@ -279,15 +281,17 @@
                 (min (/ (- (vec2 gridCoords) rayPos) rayDir)
                      (/ (- (vec2 (+ (vec2 gridCoords) 1)) rayPos) rayDir)))
          (=float dist (max t.x t.y))
-         (:if (>= dist maxDist) (return :default-return-expression))
+         (:when (>= dist maxDist) (return :default-return-expression))
          :column-hit-expression
          (:if (< tMax.x tMax.y)
-              (+= tMax.x delta.x)
-              (+= gridCoords.x step.x)
-              (= norm (vec3 (- "0.0" (float step.x)) 0 0)))
-         (:else (+= tMax.y delta.y)
-                (+= gridCoords.y step.y)
-                (= norm (vec3 0 (- "0.0" (float step.y)) 0))))
+              (:block
+               (+= tMax.x delta.x)
+               (+= gridCoords.x step.x)
+               (= norm (vec3 (- "0.0" (float step.x)) 0 0)))
+              (:block
+               (+= tMax.y delta.y)
+               (+= gridCoords.y step.y)
+               (= norm (vec3 0 (- "0.0" (float step.y)) 0)))))
         :default-return-expression)}})))
 
 ; based on https://iquilezles.org/articles/intersectors/
@@ -314,17 +318,17 @@
                    (+ (* baoa baoa)
                       (* radius radius baba))))
       (=float h (- (* b b) (* a c)))
-      (:if (>= h 0)
-           (=float t (/ (- 0 (+ b (sqrt h))) a))
-           (=float y (+ baoa (* t bard)))
-           (:if (&& (> y 0) (< y baba)) (return t))
-           (=vec3 oc (if (<= y 0)
-                       offset
-                       (- ray.pos point2)))
-           (= b (dot ray.dir oc))
-           (= c (- (dot oc oc) (* radius radius)))
-           (= h (- (* b b) c))
-           (:if (> h 0) (return (- 0 (+ b (sqrt h))))))
+      (:when (>= h 0)
+             (=float t (/ (- 0 (+ b (sqrt h))) a))
+             (=float y (+ baoa (* t bard)))
+             (:when (&& (> y 0) (< y baba)) (return t))
+             (=vec3 oc (if (<= y 0)
+                         offset
+                         (- ray.pos point2)))
+             (= b (dot ray.dir oc))
+             (= c (- (dot oc oc) (* radius radius)))
+             (= h (- (* b b) c))
+             (:when (> h 0) (return (- 0 (+ b (sqrt h))))))
       -1)
      capsuleNorm
      (vec3
@@ -371,28 +375,28 @@
                           baba))))
 
       (=float h (- (* k1 k1) (* k2 k0)))
-      (:if (< h 0)
-           (return (CylinderIntersection "false"
-                                         0
-                                         (vec3 0))))
+      (:when (< h 0)
+             (return (CylinderIntersection "false"
+                                           0
+                                           (vec3 0))))
       (= h (sqrt h))
       (=float t (/ (- 0 (+ k1 h)) k2))
 
       (=float y (+ baoc (* t bard)))
-      (:if (&& (>= t 0) (> y 0) (< y baba))
-           (return (CylinderIntersection "true"
-                                         t
-                                         (/ (- (+ offset (* t ray.dir))
-                                               (/ (* diff y) baba))
-                                            radius))))
+      (:when (&& (>= t 0) (> y 0) (< y baba))
+             (return (CylinderIntersection "true"
+                                           t
+                                           (/ (- (+ offset (* t ray.dir))
+                                                 (/ (* diff y) baba))
+                                              radius))))
 
       (= t (/ (- (if (< y 0) 0 baba) baoc) bard))
-      (:if (&& (>= t 0)
-               (< (abs (+ k1 (* k2 t))) h))
-           (return (CylinderIntersection "true"
-                                         t
-                                         (/ (* diff (sign y))
-                                            (sqrt baba)))))
+      (:when (&& (>= t 0)
+                 (< (abs (+ k1 (* k2 t))) h))
+             (return (CylinderIntersection "true"
+                                           t
+                                           (/ (* diff (sign y))
+                                              (sqrt baba)))))
 
       (CylinderIntersection "false"
                             0
