@@ -1,5 +1,6 @@
 (ns kudzu.chunks.color.oklab
-  (:require [kudzu.tools :refer [unquotable]]))
+  (:require [kudzu.core :refer [combine-chunks]]
+            [kudzu.tools :refer [unquotable]]))
 
 ; based on https://www.shadertoy.com/view/ttcyRS
 (def mix-oklab-chunk
@@ -40,7 +41,7 @@
                   (* kLMStoCONE (* lms lms lms)))]}})
 
 ; based on https://www.shadertoy.com/view/7sVGD1
-(def okhsl-chunk
+(def okhsl-okhsv-shared-chunk
   (unquotable
    '{:functions
      {cbrt
@@ -610,108 +611,214 @@
                (= C-0 (sqrt (/ (+ (/ (* C-a C-a))
                                   (/ (* C-b C-b)))))))
 
-       (vec3 C-0 C-mid C-max))
+       (vec3 C-0 C-mid C-max))}}))
 
-      okhsl->srgb
-      (vec3
-       [hsl vec3]
-       (=float h hsl.x)
-       (=float s hsl.y)
-       (=float l hsl.z)
+(def okhsl-chunk
+  (unquotable
+   (combine-chunks
+    okhsl-okhsv-shared-chunk
+    '{:functions
+      {okhsl->srgb
+       (vec3
+        [hsl vec3]
+        (=float h hsl.x)
+        (=float s hsl.y)
+        (=float l hsl.z)
 
-       (:when (== l 1) (return (vec3 1)))
-       (:else-if (== l 0) (return (vec3 0)))
+        (:when (== l 1) (return (vec3 1)))
+        (:else-if (== l 0) (return (vec3 0)))
 
-       (=float a (cos (* ~(* Math/PI 2) h)))
-       (=float b (sin (* ~(* Math/PI 2) h)))
-       (=float L (toe-inv l))
+        (=float a (cos (* ~(* Math/PI 2) h)))
+        (=float b (sin (* ~(* Math/PI 2) h)))
+        (=float L (toe-inv l))
 
-       (=vec3 cs (get-Cs L a b))
-       (=float C-0 cs.x)
-       (=float C-mid cs.y)
-       (=float C-max cs.z)
+        (=vec3 cs (get-Cs L a b))
+        (=float C-0 cs.x)
+        (=float C-mid cs.y)
+        (=float C-max cs.z)
 
-       (=float mid 0.8)
-       (=float mid-inv 1.25)
+        (=float mid 0.8)
+        (=float mid-inv 1.25)
 
-       (=float C nil)
-       (=float t nil)
-       (=float k0 nil)
-       (=float k1 nil)
-       (=float k2 nil)
+        (=float C nil)
+        (=float t nil)
+        (=float k0 nil)
+        (=float k1 nil)
+        (=float k2 nil)
 
-       (:if (< s mid)
-            (:block
-             (= t (* mid-inv s))
-             (= k1 (* mid C-0))
-             (= k2 (- 1 (/ k1 C-mid)))
+        (:if (< s mid)
+             (:block
+              (= t (* mid-inv s))
+              (= k1 (* mid C-0))
+              (= k2 (- 1 (/ k1 C-mid)))
 
-             (= C (/ (* t k1)
-                     (- 1 (* k2 t)))))
-            (:block
-             (= t (/ (- s mid)
-                     (- 1 mid)))
-             (= k0 C-mid)
-             (= k1 (/ (* (- 1 mid)
-                         C-mid
-                         C-mid
-                         mid-inv
-                         mid-inv)
-                      C-0))
-             (= k2 (- 1 (/ k1 (- C-max C-mid))))
+              (= C (/ (* t k1)
+                      (- 1 (* k2 t)))))
+             (:block
+              (= t (/ (- s mid)
+                      (- 1 mid)))
+              (= k0 C-mid)
+              (= k1 (/ (* (- 1 mid)
+                          C-mid
+                          C-mid
+                          mid-inv
+                          mid-inv)
+                       C-0))
+              (= k2 (- 1 (/ k1 (- C-max C-mid))))
 
-             (= C (+ k0
-                     (/ (* t k1)
-                        (- 1 (* k2 t)))))))
+              (= C (+ k0
+                      (/ (* t k1)
+                         (- 1 (* k2 t)))))))
 
-       (=vec3 rgb (oklab->linear-srgb (vec3 L (* C a) (* C b))))
-       (vec3 (srgb-transfer-function rgb.r)
-             (srgb-transfer-function rgb.g)
-             (srgb-transfer-function rgb.b)))
+        (=vec3 rgb (oklab->linear-srgb (vec3 L (* C a) (* C b))))
+        (vec3 (srgb-transfer-function rgb.r)
+              (srgb-transfer-function rgb.g)
+              (srgb-transfer-function rgb.b)))
 
-      srgb->okhsl ; untested
-      (vec3
-       [rgb vec3]
-       (=vec3 lab (linear-srgb->-oklab
-                   (vec3 (srgb-transfer-function-inv rgb.r)
-                         (srgb-transfer-function-inv rgb.g)
-                         (srgb-transfer-function-inv rgb.b))))
-       (=float C (sqrt (+ (* lab.y lab.y)
-                          (* lab.z lab.z))))
-       (=float a (/ lab.y C))
-       (=float b (/ lab.z C))
+       srgb->okhsl ; untested
+       (vec3
+        [rgb vec3]
+        (=vec3 lab (linear-srgb->-oklab
+                    (vec3 (srgb-transfer-function-inv rgb.r)
+                          (srgb-transfer-function-inv rgb.g)
+                          (srgb-transfer-function-inv rgb.b))))
+        (=float C (sqrt (+ (* lab.y lab.y)
+                           (* lab.z lab.z))))
+        (=float a (/ lab.y C))
+        (=float b (/ lab.z C))
 
-       (=float L lab.x)
-       (=float h (+ 0.5 (/ (atan (- lab.z) (- lab.y))
-                           ~(* Math/PI 2))))
+        (=float L lab.x)
+        (=float h (+ 0.5 (/ (atan (- lab.z) (- lab.y))
+                            ~(* Math/PI 2))))
 
-       (=vec3 cs (get-Cs L a b))
-       (=float C-0 cs.x)
-       (=float C-mid cs.y)
-       (=float C-max cs.z)
+        (=vec3 cs (get-Cs L a b))
+        (=float C-0 cs.x)
+        (=float C-mid cs.y)
+        (=float C-max cs.z)
 
-       (=float mid 0.8)
-       (=float mid-inv 1.25)
+        (=float mid 0.8)
+        (=float mid-inv 1.25)
 
-       (=float s nil)
-       (:if (< C C-mid)
-            (:block
-             (=float k1 (* mid C-0))
-             (=float k2 (- 1 (/ k1 C-mid)))
-             (=float t (/ C (+ k1 (* k2 C))))
-             (= s (* t mid)))
-            (:block
-             (=float k0 C-mid)
-             (=float k1 (/ (* (- 1 mid)
-                              C-mid
-                              C-mid
-                              mid-inv
-                              mid-inv)
-                           C-0))
-             (=float k2 (- 1 (/ k1 (- C-max C-mid))))
+        (=float s nil)
+        (:if (< C C-mid)
+             (:block
+              (=float k1 (* mid C-0))
+              (=float k2 (- 1 (/ k1 C-mid)))
+              (=float t (/ C (+ k1 (* k2 C))))
+              (= s (* t mid)))
+             (:block
+              (=float k0 C-mid)
+              (=float k1 (/ (* (- 1 mid)
+                               C-mid
+                               C-mid
+                               mid-inv
+                               mid-inv)
+                            C-0))
+              (=float k2 (- 1 (/ k1 (- C-max C-mid))))
 
-             (=float t (/ (- C k0)
-                          (+ k1 (* k2 (- C k0)))))
-             (= s (+ mid (* t (- 1 mid))))))
+              (=float t (/ (- C k0)
+                           (+ k1 (* k2 (- C k0)))))
+              (= s (+ mid (* t (- 1 mid))))))
 
-       (vec3 h s (toe L)))}}))
+        (vec3 h s (toe L)))}})))
+
+(def okhsv-chunk
+  (unquotable
+   (combine-chunks
+    okhsl-okhsv-shared-chunk
+    '{:functions
+      {okhsv->srgb
+       (vec3
+        [hsl vec3]
+        (=float h hsl.x)
+        (=float s hsl.y)
+        (=float v hsl.z)
+
+        (=float a (cos (* ~(* Math/PI 2) h)))
+        (=float b (sin (* ~(* Math/PI 2) h)))
+
+        (=vec2 cusp (find-cusp a b))
+        (=vec2 st-max (to-ST cusp))
+        (=float s-max st-max.x)
+        (=float t-max st-max.y)
+        (=float s0 0.5)
+        (=float k (- 1 (/ s0 s-max)))
+
+        (=float denom (+ s0 (* t-max (- 1 (* k s)))))
+        (=float l-v (- 1 (/ (* s s0)
+                            denom)))
+        (=float c-v (/ (* s t-max s0)
+                       denom))
+
+        (=float l (* v l-v))
+        (=float c (* v c-v))
+
+        (=float l-vt (toe-inv l-v))
+        (=float c-vt (/ (* c-v l-vt)
+                        l-v))
+
+        (=float l-new (toe-inv l))
+        (*= c (/ l-new l))
+        (= l l-new)
+
+        (=vec3 rgb-scale (oklab->linear-srgb (vec3 l-vt
+                                                   (* a c-vt)
+                                                   (* b c-vt))))
+        (=float scale-l (cbrt (/ (max (max rgb-scale.r rgb-scale.g)
+                                      (max rgb-scale.b 0)))))
+
+        (*= l scale-l)
+        (*= c scale-l)
+
+        (=vec3 rgb (oklab->linear-srgb (vec3 l (* c a) (* c b))))
+        (vec3 (srgb-transfer-function rgb.r)
+              (srgb-transfer-function rgb.g)
+              (srgb-transfer-function rgb.b)))
+
+       srgb->okhsv ; untested
+       (vec3
+        [rgb vec3]
+        (=vec3 lab (linear-srgb->-oklab
+                    (vec3 (srgb-transfer-function-inv rgb.r)
+                          (srgb-transfer-function-inv rgb.g)
+                          (srgb-transfer-function-inv rgb.b))))
+        (=float c (sqrt (+ (* lab.y lab.y)
+                           (* lab.z lab.z))))
+        (=float a (/ lab.y c))
+        (=float b (/ lab.z c))
+
+        (=float l lab.x)
+        (=float h (+ 0.5 (/ (atan (- lab.z) (- lab.y))
+                            ~(* Math/PI 2))))
+
+        (=vec2 cusp (find-cusp a b))
+        (=vec2 st-max (to-ST cusp))
+        (=float s-max st-max.x)
+        (=float t-max st-max.y)
+        (=float s0 0.5)
+        (=float k (- 1 (/ s0 s-max)))
+
+        (=float t (/ t-max (+ c (* l t-max))))
+        (=float l-v (* t l))
+        (=float c-v (* t c))
+
+        (=float l-vt (toe-inv l-v))
+        (=float c-vt (* c-v (/ l-vt l-v)))
+
+        (=vec3 rgb-scale (oklab->linear-srgb (vec3 l-vt
+                                                   (* a c-vt)
+                                                   (* b c-vt))))
+        (=float scale-l (cbrt (/ (max (max rgb-scale.r rgb-scale.g)
+                                      (max rgb-scale.b 0)))))
+
+        (=-> l (/ scale-l))
+        (=-> c (/ scale-l))
+
+        (*= c (/ (toe l) l))
+        (=-> l toe)
+
+        (=float v (/ l l-v))
+        (=float s (/ (* c-v (+ s0 t-max))
+                     (* t-max (+ s0 (* k c-v)))))
+
+        (vec3 h s v))}})))
