@@ -1,7 +1,7 @@
 (ns kudzu.chunks.color.oklab
   (:require [kudzu.core :refer [combine-chunks]]
             [kudzu.tools :refer [unquotable]]
-            [kudzu.chunks.color.rgb :refer [lrgb-srgb-chunk]]))
+            [kudzu.chunks.color.rgb :refer [lrgb-chunk]]))
 
 ; based on https://www.shadertoy.com/view/ttcyRS
 (def mix-oklab-chunk
@@ -44,7 +44,7 @@
 ; based on https://www.shadertoy.com/view/7sVGD1
 (def okhsl-okhsv-shared-chunk
   (combine-chunks
-   lrgb-srgb-chunk
+   lrgb-chunk
    (unquotable
     '{:functions
       {cbrt
@@ -208,8 +208,7 @@
         (=vec3 rgb-at-max (oklab->lrgb (vec3 1
                                              (* S-cusp a)
                                              (* S-cusp b))))
-        (=float L-cusp (cbrt (/ (max (max rgb-at-max.r rgb-at-max.g)
-                                     rgb-at-max.b))))
+        (=float L-cusp (cbrt (/ (mmax rgb-at-max.r rgb-at-max.g rgb-at-max.b))))
         (=float C-cusp (* L-cusp S-cusp))
         (vec2 L-cusp C-cusp))
 
@@ -315,7 +314,7 @@
           (= t-g (if (>= u-g 0) t-g 10000))
           (= t-b (if (>= u-b 0) t-b 10000))
 
-          (+= t (min t-r (min t-g t-b))))
+          (+= t (mmin t-r t-g t-b)))
 
          t)
         (float
@@ -747,8 +746,7 @@
         (=vec3 rgb-scale (oklab->lrgb (vec3 l-vt
                                             (* a c-vt)
                                             (* b c-vt))))
-        (=float scale-l (cbrt (/ (max (max rgb-scale.r rgb-scale.g)
-                                      (max rgb-scale.b 0)))))
+        (=float scale-l (cbrt (/ (mmax rgb-scale.r rgb-scale.g rgb-scale.b 0))))
 
         (*= l scale-l)
         (*= c scale-l)
@@ -785,8 +783,7 @@
         (=vec3 rgb-scale (oklab->lrgb (vec3 l-vt
                                             (* a c-vt)
                                             (* b c-vt))))
-        (=float scale-l (cbrt (/ (max (max rgb-scale.r rgb-scale.g)
-                                      (max rgb-scale.b 0)))))
+        (=float scale-l (cbrt (/ (mmax rgb-scale.r rgb-scale.g rgb-scale.b 0))))
 
         (=-> l (/ scale-l))
         (=-> c (/ scale-l))

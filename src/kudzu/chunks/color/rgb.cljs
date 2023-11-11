@@ -1,6 +1,6 @@
 (ns kudzu.chunks.color.rgb)
 
-(def lrgb-srgb-chunk
+(def lrgb-chunk
   '{:functions
     {lrgb->srgb
      [(float
