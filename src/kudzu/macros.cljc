@@ -105,4 +105,8 @@
    'bi->uni #(list '* 0.5 (list '+ 1 %))
    'uni->bi #(list '- (list '* 2 %) 1)
    'pixel-pos pixel-pos
-   'grab-pixel grab-pixel})
+   'grab-pixel grab-pixel
+   'mmin #(reduce (partial list 'min)
+                  %&)
+   'mmax #(reduce (partial list 'max)
+                  %&)})
