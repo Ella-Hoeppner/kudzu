@@ -1,5 +1,15 @@
 (ns kudzu.chunks.color.rgb)
 
+ (def aces-tonemap-chunk
+   '{:functions
+     {aces-tonemap
+      (vec3
+       [rgb vec3]
+       (clamp (/ (* rgb (+ 0.03 (* 2.51 rgb)))
+                 (+ 0.14 (* rgb (+ 0.59 (* 2.43 rgb)))))
+              0
+              1))}})
+
 (def lrgb-chunk
   '{:functions
     {lrgb->srgb
