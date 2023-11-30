@@ -133,7 +133,7 @@
          cam-pos vec3
          focal-dist float]
         (get-camera-ray screen-pos 
-                        camera-target 
+                        cam-target 
                         cam-pos 
                         focal-dist 
                         (vec3 0 1 0)))]}}))
