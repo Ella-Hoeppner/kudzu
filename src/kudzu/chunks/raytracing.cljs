@@ -108,23 +108,35 @@
             :expression ~(list fn-name ray max-distance)})))}}))
 
 (def perspective-camera-chunk
-  (combine-chunks ray-chunk
-                  '{:functions
-                    {cameraRay
-                     (Ray
-                      [screen-pos vec2
-                       cam-target vec3
-                       cam-pos vec3
-                       focal-dist float]
-                      (=vec3 cam-dir (normalize (- cam-target cam-pos)))
-                      (=vec3 cam-right (normalize (cross cam-dir (vec3 0 1 0))))
-                      (=vec3 cam-up (cross cam-right cam-dir))
+  (combine-chunks
+   ray-chunk
+   '{:functions
+     {get-camera-ray
+      [(Ray
+        [screen-pos vec2
+         cam-target vec3
+         cam-pos vec3
+         focal-dist float
+         cross-vector vec3]
+        (=vec3 cam-dir (normalize (- cam-target cam-pos)))
+        (=vec3 cam-right (normalize (cross cam-dir cross-vector)))
+        (=vec3 cam-up (cross cam-right cam-dir))
 
-                      (=vec3 film-pos (+ (* cam-dir focal-dist)
-                                         (* screen-pos.x cam-right)
-                                         (* screen-pos.y cam-up)))
+        (=vec3 film-pos (+ (* cam-dir focal-dist)
+                           (* screen-pos.x cam-right)
+                           (* screen-pos.y cam-up)))
 
-                      (Ray cam-pos (normalize film-pos)))}}))
+        (Ray cam-pos (normalize film-pos)))
+       (Ray
+        [screen-pos vec2
+         cam-target vec3
+         cam-pos vec3
+         focal-dist float]
+        (get-camera-ray screen-pos 
+                        camera-target 
+                        cam-pos 
+                        focal-dist 
+                        (vec3 0 1 0)))]}}))
 
 ; TODO: refactor into a macro
 ; or just get rid of it? might be too niche
