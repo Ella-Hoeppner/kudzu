@@ -105,7 +105,7 @@
 
       ; Outputs are assigned to like normal variables, 
       ; as they've already been declared in the :outputs map.
-      (= fragColor (vec4 1 0 0 1)))}))
+      (= frag-color (vec4 1 0 0 1)))}))
 
 (def conditional-example
   (kudzu->glsl
@@ -204,7 +204,7 @@
                   (texture tex)
                   .rgb
                   vec3))
-      (= fragColor (as-> pos p
+      (= frag-color (as-> pos p
                      (texture tex p)
                      (.rgb p)
                      (mod p (vec3 0.5))

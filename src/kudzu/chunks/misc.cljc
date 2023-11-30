@@ -20,8 +20,8 @@
                  usampler2D highp}
      :uniforms {tex :sampler-type
                 resolution vec2}
-     :outputs {fragColor :pixel-type}
-     :main ((= fragColor
+     :outputs {frag-color :pixel-type}
+     :main ((= frag-color
                (texture tex
                         (/ gl_FragCoord.xy resolution))))}))
 
@@ -29,15 +29,15 @@
   '{:functions
     {rescale
      (float
-      [oldMin float
-       oldMax float
-       newMin float
-       newMax float
+      [old-min float
+       old-max float
+       new-min float
+       new-max float
        x float]
-      (+ newMin
-         (* (- newMax newMin)
-            (/ (- x oldMin)
-               (- oldMax oldMin)))))}})
+      (+ new-min
+         (* (- new-max new-min)
+            (/ (- x old-min)
+               (- old-max old-min)))))}})
 
 (def sigmoid-chunk
   (generalize-float-functions
@@ -76,21 +76,21 @@
 
 (def bilinear-usampler-chunk
   '{:functions
-    {textureBilinear
+    {texture-bilinear
      (vec4
       [tex usampler2D
        pos vec2]
-      (=vec2 texSize (vec2 (textureSize tex "0")))
-      (=vec2 texCoords (- (* pos texSize) 0.5))
-      (=vec2 gridCoords (+ (floor texCoords) 0.5))
-      (=vec2 tweenCoords (fract texCoords))
-      (mix (mix (vec4 (texture tex (/ gridCoords texSize)))
-                (vec4 (texture tex (/ (+ gridCoords (vec2 1 0)) texSize)))
-                tweenCoords.x)
-           (mix (vec4 (texture tex (/ (+ gridCoords (vec2 0 1)) texSize)))
-                (vec4 (texture tex (/ (+ gridCoords (vec2 1 1)) texSize)))
-                tweenCoords.x)
-           tweenCoords.y))}})
+      (=vec2 tex-size (vec2 (textureSize tex "0")))
+      (=vec2 tex-coords (- (* pos tex-size) 0.5))
+      (=vec2 grid-coords (+ (floor tex-coords) 0.5))
+      (=vec2 tween-coords (fract tex-coords))
+      (mix (mix (vec4 (texture tex (/ grid-coords tex-size)))
+                (vec4 (texture tex (/ (+ grid-coords (vec2 1 0)) tex-size)))
+                tween-coords.x)
+           (mix (vec4 (texture tex (/ (+ grid-coords (vec2 0 1)) tex-size)))
+                (vec4 (texture tex (/ (+ grid-coords (vec2 1 1)) tex-size)))
+                tween-coords.x)
+           tween-coords.y))}})
 
 (def paretto-transform-chunk
   '{:functions {paretto
@@ -107,12 +107,12 @@
     '{:functions
       {osc (float [x float] (sin (* x ~(* 2 Math/PI))))
        saw (float [x float] (- (mod (* 2 (+ x 0.5)) 2) 1))
-       tri (float [x float] (- (abs (- (* 2 (mod (- 0.5 (* 2 x)) 2)) 2))
-                               1))}})))
+       tri (float [x float] 
+                  (- (abs (- (* 2 (mod (- 0.5 (* 2 x)) 2)) 2)) 1))}})))
 
 (def gradient-chunk
   (unquotable
-   {:macros {'findGradient
+   {:macros {'find-gradient
              (fn [dimensions function-name sample-distance pos]
                (let [gradient-fn-name (gensym 'gradient)
                      dimension-type (case dimensions

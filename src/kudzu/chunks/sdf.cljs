@@ -4,6 +4,13 @@
             [clojure.walk :refer [postwalk-replace]]))
 
 ; SDFs based on https://iquilezles.org/articles/distfunctions/
+(def plane-sdf-chunk
+  '{:functions {sd-plane
+                (float
+                 [pos vec3
+                  plane-ray Ray]
+                 (dot (- plane-ray.pos pos) plane-ray.dir))}})
+
 (def sphere-sdf-chunk
   '{:functions {sd-sphere
                 (float
@@ -163,7 +170,6 @@
 
                  (- (length (- pa (* ba h))) r))}})
 
-
 ;TODO fix this, cannot figure out what's wrong w it -Fay
 #_(def octahedron-sdf-chunk
     '{:functions {sd-octahedron
@@ -189,70 +195,70 @@
                                  (- q.y (+ s k))
                                  (- q.z k))))}})
 
-(def pyramid-sdf-chunk '{:functions
-                         {sd-pyramid
-                          (float
-                           [pos vec3
-                            h float]
-                           (=float m2 (+ (* h h) 0.25))
+(def pyramid-sdf-chunk
+  '{:functions
+    {sd-pyramid
+     (float
+      [pos vec3
+       h float]
+      (=float m2 (+ (* h h) 0.25))
 
-                           (= pos.xz (abs pos.xz))
-                           (= pos.xz (if (> pos.z pos.x)
-                                       pos.zx
-                                       pos.xz))
-                           (-= pos.xz 0.5)
+      (= pos.xz (abs pos.xz))
+      (= pos.xz (if (> pos.z pos.x)
+                  pos.zx
+                  pos.xz))
+      (-= pos.xz 0.5)
 
-                           (=vec3 q  (vec3 pos.z
-                                           (- (* h pos.y)
-                                              (* 0.5 pos.x))
-                                           (+ (* h pos.x)
-                                              (* 0.5 pos.y))))
+      (=vec3 q  (vec3 pos.z
+                      (- (* h pos.y)
+                         (* 0.5 pos.x))
+                      (+ (* h pos.x)
+                         (* 0.5 pos.y))))
 
-                           (=float s (max (* -1 q.x) 0))
-                           (=float t (clamp (/ (- q.y (* 0.5 pos.z))
-                                               (+ m2 0.25))
-                                            0 1))
+      (=float s (max (* -1 q.x) 0))
+      (=float t (clamp (/ (- q.y (* 0.5 pos.z))
+                          (+ m2 0.25))
+                       0 1))
 
-                           (=float a (+ (* m2
-                                           (+ q.x s)
-                                           (+ q.x s))
-                                        (* q.y q.y)))
-                           (=float b (+ (* m2
-                                           (+ q.x (* 0.5 t))
-                                           (+ q.x (* 0.5 t)))
-                                        (* (- q.y (* m2 t))
-                                           (- q.y (* m2 t)))))
+      (=float a (+ (* m2
+                      (+ q.x s)
+                      (+ q.x s))
+                   (* q.y q.y)))
+      (=float b (+ (* m2
+                      (+ q.x (* 0.5 t))
+                      (+ q.x (* 0.5 t)))
+                   (* (- q.y (* m2 t))
+                      (- q.y (* m2 t)))))
 
-                           (=float d2 (if (> (min q.y (- (* -1 q.x m2)
-                                                         (* q.y 0.5)))
-                                             0)
-                                        0
-                                        (min a b)))
+      (=float d2 (if (> (min q.y (- (* -1 q.x m2)
+                                    (* q.y 0.5)))
+                        0)
+                   0
+                   (min a b)))
 
-                           (sqrt (* (/ (+ d2 (* q.z q.z)) m2)
-                                    (sign (max q.z (- 0 pos.y))))))}})
-
+      (sqrt (* (/ (+ d2 (* q.z q.z)) m2)
+               (sign (max q.z (- 0 pos.y))))))}})
 
 ; todo: replace with a macro
 #_(defn get-multi-dimension-elongate-chunk [sdf-fn-name]
-  (postwalk-replace
-   {:fn-name sdf-fn-name}
-   '{:functions {opElongate
-                 (float
-                  [pos vec3
-                   shapePos vec3
-                   h vec3]
-                  (= pos (- pos shapePos))
-                  (=vec3 q (- pos (clamp p
-                                         (* -1 h)
-                                         h)))
+    (postwalk-replace
+     {:fn-name sdf-fn-name}
+     '{:functions {opElongate
+                   (float
+                    [pos vec3
+                     shapePos vec3
+                     h vec3]
+                    (= pos (- pos shapePos))
+                    (=vec3 q (- pos (clamp p
+                                           (* -1 h)
+                                           h)))
 
-                  (:fn-name q  #_(args here)))}}))
+                    (:fn-name q  #_(args here)))}}))
 
 ; sdf operations
 (def smooth-union-chunk
   '{:functions
-    {smoothUnion
+    {smooth-union
      (float
       [d1 float
        d2 float
@@ -262,7 +268,7 @@
 
 (def smooth-intersectioon-chunk
   '{:functions
-    {smoothIntersection
+    {smooth-intersection
      (float
       [d1 float
        d2 float
@@ -272,7 +278,7 @@
 
 (def smooth-subtraction-chunk
   '{:functions
-    {smoothSubtraction
+    {smooth-subtraction
      (float
       [d1 float
        d2 float
@@ -289,25 +295,14 @@
        h float]
       (- (abs d) h))}})
 
-(def twist-x-chunk
+(def twist-chunk
   '{:functions
-    {twistX
+    {twist
      (float
       [pos vec3
        k float]
-      (=float c (cos (* k pos.x)))
-      (=float s (sin (* k pos.x)))
+      (=float c (cos (* k pos.y)))
+      (=float s (sin (* k pos.y)))
       (=mat2 m (mat2 c (- 0 s) s c))
-      (=vec3 q (vec3 (* m pos.yz) pos.x))
+      (=vec3 q (vec3 (* m pos.xz) pos.y))
       q)}})
-
-(def twist-y-chunk
-  '{:functions {twistY
-                (float
-                 [pos vec3
-                  k float]
-                 (=float c (cos (* k pos.y)))
-                 (=float s (sin (* k pos.y)))
-                 (=mat2 m (mat2 c (- 0 s) s c))
-                 (=vec3 q (vec3 (* m pos.xz) pos.y))
-                 q)}})

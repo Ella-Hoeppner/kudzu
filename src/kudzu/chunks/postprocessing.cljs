@@ -62,6 +62,7 @@
                factors)
           '+)))
 
+; TODO: convert to a macro
 (defn create-gaussian-sample-chunk [texture-type neighborhood]
   (combine-chunks
    gaussian-chunk
@@ -97,6 +98,7 @@
                neighborhood)
        '((/ sampleSum factorSum)))}})))
 
+; TODO: convert to a macro
 (defn get-bloom-chunk [texture-type neighborhood sigma]
   (postwalk-replace
    {:divisor (.toFixed ({:f8 1

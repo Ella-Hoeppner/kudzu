@@ -30,7 +30,7 @@
 (def rand-normal-chunk
   (combine-chunks rand-chunk
                   '{:functions
-                    {randNorm
+                    {rand-norm
                      (vec2
                       [x vec2]
                       (=float angle (* 6.283185307179586 (rand x)))
@@ -44,8 +44,8 @@
                     {randSphere
                      (vec3
                       [x vec3]
-                      (=vec2 norm1 (randNorm x.xy))
-                      (=vec2 norm2 (randNorm (+ x.yz (vec2 -153 0))))
+                      (=vec2 norm1 (rand-norm x.xy))
+                      (=vec2 norm2 (rand-norm (+ x.yz (vec2 -153 0))))
 
                       (* (vec3 norm1 norm2.x)
                          (/ (pow (rand (+ x.zx (vec2 -101 60))) (/ 1 3))
@@ -470,29 +470,30 @@
                       (dot x (vec3 269.5 183.3 246.1))
                       (dot x (vec3 113.5 271.9 124.6))))
            (fract (* (sin x) 43758.5453123)))
-     voronoise3D (vec3
-                  [pos vec3]
-                  (=vec3 p (floor pos))
-                  (=vec3 f (fract pos))
+     voronoise-3d
+     (vec3
+      [pos vec3]
+      (=vec3 p (floor pos))
+      (=vec3 f (fract pos))
 
-                  (=float id 0)
-                  (=vec2 res (vec2 100))
-                  (:for (=int k "-1") (<= k "1") (++ k)
-                        (:for (=int j "-1") (<= j "1") (++ i)
-                              (:for (=int i "-1") (<= i "1") (++ i)
-                                    (=vec3 b (vec3 (float i)
-                                                   (float j)
-                                                   (float k)))
-                                    (=vec3 r (- b (- f (hash (+ p b)))))
-                                    (=float d (dot r r))
+      (=float id 0)
+      (=vec2 res (vec2 100))
+      (:for (=int k "-1") (<= k "1") (++ k)
+            (:for (=int j "-1") (<= j "1") (++ i)
+                  (:for (=int i "-1") (<= i "1") (++ i)
+                        (=vec3 b (vec3 (float i)
+                                       (float j)
+                                       (float k)))
+                        (=vec3 r (- b (- f (hash (+ p b)))))
+                        (=float d (dot r r))
 
-                                    (:if (< d res.x)
-                                         (:block
-                                          (= id (dot (+ p b) (vec3 1 57 113)))
-                                          (= res (vec2 d res.x)))
-                                         (:when (< d res.y)
-                                                (= res.y d))))))
-                  (vec3 (sqrt res) (abs id)))}})
+                        (:if (< d res.x)
+                             (:block
+                              (= id (dot (+ p b) (vec3 1 57 113)))
+                              (= res (vec2 d res.x)))
+                             (:when (< d res.y)
+                                    (= res.y d))))))
+      (vec3 (sqrt res) (abs id)))}})
 
 ; based on "Gabor Noise by Example" section 3.3
 ; doi:10.1145/2185520.2185569
@@ -530,7 +531,7 @@
    gabor-kernel-chunk
    (unquotable
     {:macros
-     {'gaborNoise
+     {'gabor-noise
       (fn gabor-macro [dimensions & args]
         (let [position-type ('[float vec2 vec3 vec4]
                              (dec dimensions))
@@ -590,7 +591,7 @@
 (def wobbly-sine-chunk
   (unquotable
    {:macros
-    {'wobble3D
+    {'wobble-3d
      (fn wobbly-sine [input rand-fn & args]
        (let [valid-arg? (fn? rand-fn)
              multiple-amplitudes? (> (count args) 1)

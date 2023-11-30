@@ -17,24 +17,24 @@
      '{:precision {float highp
                    int highp
                    ~glsl-texture-type highp}
-       :outputs {particlePos vec2}
-       :uniforms {particleTex ~glsl-texture-type
+       :outputs {particle-pos vec2}
+       :uniforms {particle-tex ~glsl-texture-type
                   radius float}
        :main ((=int agentIndex (/ gl_VertexID "6"))
               (=int corner (% gl_VertexID "6"))
 
-              (=ivec2 texSize (textureSize particleTex "0"))
+              (=ivec2 tex-size (textureSize particle-tex "0"))
 
               (=vec2 texPos
-                     (/ (+ 0.5 (vec2 (% agentIndex texSize.x)
-                                     (/ agentIndex texSize.x)))
-                        (vec2 texSize)))
+                     (/ (+ 0.5 (vec2 (% agentIndex tex-size.x)
+                                     (/ agentIndex tex-size.x)))
+                        (vec2 tex-size)))
 
-              (~vec-type particleColor (texture particleTex texPos))
-              (= particlePos (/ (vec2 particleColor.xy) ~texture-max))
+              (~vec-type particle-color (texture particle-tex texPos))
+              (= particle-pos (/ (vec2 particle-color.xy) ~texture-max))
 
               (= gl_Position
-                 (vec4 (- (* (+ particlePos
+                 (vec4 (- (* (+ particle-pos
                                 (* radius
                                    (- (* 2
                                          (if (|| (== corner "0")
@@ -65,27 +65,27 @@
                    int highp}
        :uniforms {radius float
                   resolution float}
-       :inputs {particlePos vec2}
-       :outputs {fragColor ~output-type}
+       :inputs {particle-pos vec2}
+       :outputs {frag-color ~output-type}
        :main ((=vec2 pos (/ gl_FragCoord.xy resolution))
-              (=float dist (distance pos particlePos))
+              (=float dist (distance pos particle-pos))
               (:when (> dist radius)
                      "discard")
-              (= fragColor (~output-type ~texture-max 0 0 ~texture-max)))})))
+              (= frag-color (~output-type ~texture-max 0 0 ~texture-max)))})))
 
 (def particle-vert-3d-source-u32
   '{:uniforms {time float
                radius float
                perspective mat4
-               particleTex usampler2D
-               cubeDistance float}
-    :outputs {squarePos vec2
-              vertexPos vec3}
+               particle-tex usampler2D
+               cube-distance float}
+    :outputs {square-pos vec2
+              vertex-pos vec3}
     :main
-    ((=int particleIndex (/ gl_VertexID "6"))
+    ((=int particle-index (/ gl_VertexID "6"))
      (=int corner (% gl_VertexID "6"))
 
-     (= squarePos
+     (= square-pos
         (vec2 (if (|| (== corner "0")
                       (== corner "3")
                       (== corner "2"))
@@ -97,50 +97,50 @@
                 -1
                 1)))
 
-     (=ivec2 texSize (textureSize particleTex "0"))
+     (=ivec2 tex-size (textureSize particle-tex "0"))
 
-     (=uvec4 particleTexColor
-             (texelFetch particleTex
-                         (ivec2 (% particleIndex texSize.x)
-                                (/ particleIndex texSize.x))
+     (=uvec4 particle-tex-color
+             (texelFetch particle-tex
+                         (ivec2 (% particle-index tex-size.x)
+                                (/ particle-index tex-size.x))
                          "0"))
-     (=vec3 particlePos
-            (-> particleTexColor
+     (=vec3 particle-pos
+            (-> particle-tex-color
                 .xyz
                 vec3
                 (/ ~(dec (Math/pow 2 32)))
                 (* 2)
                 (- 1)))
 
-     (= vertexPos
-        (vec3 (+ particlePos.xy
+     (= vertex-pos
+        (vec3 (+ particle-pos.xy
                  (* radius
-                    squarePos))
-              (- particlePos.z
-                 (+ 1 cubeDistance))))
+                    square-pos))
+              (- particle-pos.z
+                 (+ 1 cube-distance))))
 
-     (= gl_Position (* (vec4 vertexPos 1)
+     (= gl_Position (* (vec4 vertex-pos 1)
                        perspective))
      (= gl_Position (/ gl_Position gl_Position.w)))})
 
 (def particle-frag-3d-source-u32
   '{:uniforms {resolution vec2
                radius float
-               lightPos vec3
-               ambientLight float}
-    :inputs {vertexPos vec3
-             squarePos vec2}
-    :outputs {fragColor vec4}
+               light-pos vec3
+               ambient-light float}
+    :inputs {vertex-pos vec3
+             square-pos vec2}
+    :outputs {frag-color vec4}
     :main
-    ((=float horizontalDist (length squarePos))
+    ((=float horizontalDist (length square-pos))
      (:when (> horizontalDist 1) "discard")
-     (=float depthDist (sqrt (- 1 (* horizontalDist horizontalDist))))
-     (=vec3 surfacePos
-            (- vertexPos
-               (vec3 0 0 (* radius depthDist))))
-     (=vec3 surfaceNormal (vec3 squarePos depthDist))
-     (=vec3 lightDiff (normalize (- lightPos surfacePos)))
-     (=float lightFactor (mix ambientLight
+     (=float depth-dist (sqrt (- 1 (* horizontalDist horizontalDist))))
+     (=vec3 surface-pos
+            (- vertex-pos
+               (vec3 0 0 (* radius depth-dist))))
+     (=vec3 surface-normal (vec3 square-pos depth-dist))
+     (=vec3 light-diff (normalize (- light-pos surface-pos)))
+     (=float light-factor (mix ambient-light
                               1
-                              (max 0 (dot surfaceNormal lightDiff))))
-     (= fragColor (vec4 lightFactor 1)))})
+                              (max 0 (dot surface-normal light-diff))))
+     (= frag-color (vec4 light-factor 1)))})
