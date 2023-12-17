@@ -586,7 +586,7 @@
    (combine-chunks
     okhsl-okhsv-shared-chunk
     '{:functions
-      {okhsl->lrgb
+      {okhsl->oklab
        (vec3
         [hsl vec3]
         (=float h hsl.x)
@@ -638,9 +638,9 @@
                       (/ (* t k1)
                          (- 1 (* k2 t)))))))
 
-        (oklab->lrgb (vec3 L (* C a) (* C b))))
+        (vec3 L (* C a) (* C b)))
 
-       lrgb->okhsl ; untested
+       oklab->okhsl ; untested
        (vec3
         [rgb vec3]
         (=vec3 lab (lrgb->oklab rgb))
@@ -682,19 +682,29 @@
                            (+ k1 (* k2 (- C k0)))))
               (= s (+ mid (* t (- 1 mid))))))
 
-        (vec3 h s (toe L)))}})))
+        (vec3 h s (toe L)))
+
+       okhsl->lrgb
+       (vec3
+        [hsl vec3]
+        (-> hsl okhsl->oklab oklab->lrgb))
+
+       lrgb->okhsl
+       (vec3
+        [rgb vec3]
+        (-> rgb lrgb->oklab oklab->okhsl))}})))
 
 (def okhsv-chunk
   (unquotable
    (combine-chunks
     okhsl-okhsv-shared-chunk
     '{:functions
-      {okhsv->lrgb
+      {okhsv->oklab
        (vec3
-        [hsl vec3]
-        (=float h hsl.x)
-        (=float s hsl.y)
-        (=float v hsl.z)
+        [hsv vec3]
+        (=float h hsv.x)
+        (=float s hsv.y)
+        (=float v hsv.z)
 
         (=float a (cos (* ~(* Math/PI 2) h)))
         (=float b (sin (* ~(* Math/PI 2) h)))
@@ -731,12 +741,11 @@
         (*= l scale-l)
         (*= c scale-l)
 
-        (oklab->lrgb (vec3 l (* c a) (* c b))))
+        (vec3 l (* c a) (* c b)))
 
-       lrgb->okhsv ; untested
+       oklab->okhsv ; untested
        (vec3
-        [rgb vec3]
-        (=vec3 lab (lrgb->oklab rgb))
+        [lab vec3]
         (=float c (sqrt (+ (* lab.y lab.y)
                            (* lab.z lab.z))))
         (=float a (/ lab.y c))
@@ -775,4 +784,14 @@
         (=float s (/ (* c-v (+ s0 t-max))
                      (* t-max (+ s0 (* k c-v)))))
 
-        (vec3 h s v))}})))
+        (vec3 h s v))
+
+       okhsv->lrgb
+       (vec3
+        [hsv vec3]
+        (-> hsv okhsv->oklab oklab->lrgb))
+
+       lrgb->okhsv
+       (vec3
+        [rgb vec3]
+        (-> rgb lrgb->oklab oklab->okhsv))}})))
