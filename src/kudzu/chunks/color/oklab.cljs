@@ -3,112 +3,92 @@
             [kudzu.tools :refer [unquotable]]
             [kudzu.chunks.color.rgb :refer [lrgb-chunk]]))
 
-; based on https://www.shadertoy.com/view/ttcyRS
-(def mix-oklab-chunk
-  '{:functions {mix-oklab
-                [(vec3
-                  [rgb1 vec3
-                   rgb2 vec3
-                   p float]
-                  (=mat3 kCONEtoLMS
-                         (mat3 0.4121656120 0.2118591070 0.0883097947
-                               0.5362752080 0.6807189584 0.2818474174
-                               0.0514575653 0.1074065790 0.6302613616))
-                  (=mat3 kLMStoCONE
-                         (mat3 4.0767245293 -1.2681437731 -0.0041119885
-                               -3.3072168827 2.6093323231 -0.7034763098
-                               0.2307590544 -0.3411344290 1.7068625689))
-                  (=vec3 lms1 (pow (* kCONEtoLMS rgb1) (vec3 0.333333333)))
-                  (=vec3 lms2 (pow (* kCONEtoLMS rgb2) (vec3 0.333333333)))
-                  (=vec3 lms (mix lms1 lms2 p))
-                  (* kLMStoCONE (* lms lms lms)))
-                 (vec3
-                  [rgb1 vec3
-                   rgb2 vec3
-                   p float
-                   mid-brighten-factor float]
-                  (=mat3 kCONEtoLMS
-                         (mat3 0.4121656120 0.2118591070 0.0883097947
-                               0.5362752080 0.6807189584 0.2818474174
-                               0.0514575653 0.1074065790 0.6302613616))
-                  (=mat3 kLMStoCONE
-                         (mat3 4.0767245293 -1.2681437731 -0.0041119885
-                               -3.3072168827 2.6093323231 -0.7034763098
-                               0.2307590544 -0.3411344290 1.7068625689))
-                  (=vec3 lms1 (pow (* kCONEtoLMS rgb1) (vec3 0.333333333)))
-                  (=vec3 lms2 (pow (* kCONEtoLMS rgb2) (vec3 0.333333333)))
-                  (=vec3 lms (mix lms1 lms2 p))
-                  (*= lms (+ 1 (* mid-brighten-factor p (- 1 p))))
-                  (* kLMStoCONE (* lms lms lms)))]}})
+; most chunks here are based on https://www.shadertoy.com/view/7sVGD1
 
-; based on https://www.shadertoy.com/view/7sVGD1
+(def oklab-chunk
+  (unquotable
+   '{:functions
+     {cube-root
+      (float
+       [x float]
+       (* (sign x)
+          (pow (abs x)
+               ~(/ 3))))
+      lrgb->oklab
+      (vec3
+       [c vec3]
+       (=float l (+ (* 0.4122214708 c.r)
+                    (* 0.5363325363 c.g)
+                    (* 0.0514459929 c.b)))
+       (=float m (+ (* 0.2119034982 c.r)
+                    (* 0.6806995451 c.g)
+                    (* 0.1073969566 c.b)))
+       (=float s (+ (* 0.0883024619 c.r)
+                    (* 0.2817188376 c.g)
+                    (* 0.6299787005 c.b)))
+
+       (=float l2 (cube-root l))
+       (=float m2 (cube-root m))
+       (=float s2 (cube-root s))
+
+       (vec3 (+ (* 0.2104542553 l2)
+                (* 0.7936177850 m2)
+                (* -0.0040720468 s2))
+             (+ (* 1.9779984951 l2)
+                (* -2.4285922050 m2)
+                (* 0.4505937099 s2))
+             (+ (* 0.0259040371 l2)
+                (* 0.7827717662 m2)
+                (* -0.8086757660 s2))))
+
+      oklab->lrgb
+      (vec3
+       [c vec3]
+       (=float l2
+               (+ c.x
+                  (* 0.3963377774 c.y)
+                  (* 0.2158037573 c.z)))
+       (=float m2 (+ c.x
+                     (* -0.1055613458 c.y)
+                     (* -0.0638541728 c.z)))
+       (=float s2 (+ c.x
+                     (* -0.0894841775 c.y)
+                     (* -1.2914855480 c.z)))
+
+       (=float l (* l2 l2 l2))
+       (=float m (* m2 m2 m2))
+       (=float s (* s2 s2 s2))
+
+       (vec3 (+ (* l 4.0767416621)
+                (* m -3.3077115913)
+                (* s 0.2309699292))
+             (+ (* l -1.2684380046)
+                (* m 2.6097574011)
+                (* s -0.3413193965))
+             (+ (* l -0.0041960863)
+                (* m -0.7034186147)
+                (* s 1.7076147010))))}}))
+
+(def mix-oklab-chunk
+  (combine-chunks
+   oklab-chunk
+   '{:functions
+     {mix-oklab
+      (vec3
+       [rgb1 vec3
+        rgb2 vec3
+        p float]
+       (oklab->lrgb (mix (lrgb->oklab rgb1)
+                         (lrgb->oklab rgb2)
+                         p)))}}))
+
 (def okhsl-okhsv-shared-chunk
   (combine-chunks
+   oklab-chunk
    lrgb-chunk
    (unquotable
     '{:functions
-      {cbrt
-       (float
-        [x float]
-        (* (sign x)
-           (pow (abs x)
-                ~(/ 3))))
-       lrgb->oklab
-       (vec3
-        [c vec3]
-        (=float l (+ (* 0.4122214708 c.r)
-                     (* 0.5363325363 c.g)
-                     (* 0.0514459929 c.b)))
-        (=float m (+ (* 0.2119034982 c.r)
-                     (* 0.6806995451 c.g)
-                     (* 0.1073969566 c.b)))
-        (=float s (+ (* 0.0883024619 c.r)
-                     (* 0.2817188376 c.g)
-                     (* 0.6299787005 c.b)))
-
-        (=float l2 (cbrt l))
-        (=float m2 (cbrt m))
-        (=float s2 (cbrt s))
-
-        (vec3 (+ (* 0.2104542553 l2)
-                 (* 0.7936177850 m2)
-                 (* -0.0040720468 s2))
-              (+ (* 1.9779984951 l2)
-                 (* -2.4285922050 m2)
-                 (* 0.4505937099 s2))
-              (+ (* 0.0259040371 l2)
-                 (* 0.7827717662 m2)
-                 (* -0.8086757660 s2))))
-
-       oklab->lrgb
-       (vec3
-        [c vec3]
-        (=float l2
-                (+ c.x
-                   (* 0.3963377774 c.y)
-                   (* 0.2158037573 c.z)))
-        (=float m2 (+ c.x
-                      (* -0.1055613458 c.y)
-                      (* -0.0638541728 c.z)))
-        (=float s2 (+ c.x
-                      (* -0.0894841775 c.y)
-                      (* -1.2914855480 c.z)))
-
-        (=float l (* l2 l2 l2))
-        (=float m (* m2 m2 m2))
-        (=float s (* s2 s2 s2))
-
-        (vec3 (+ (* l 4.0767416621)
-                 (* m -3.3077115913)
-                 (* s 0.2309699292))
-              (+ (* l -1.2684380046)
-                 (* m 2.6097574011)
-                 (* s -0.3413193965))
-              (+ (* l -0.0041960863)
-                 (* m -0.7034186147)
-                 (* s 1.7076147010))))
-
-       compute-max-saturation
+      {compute-max-saturation
        (float
         [a float
          b float]
@@ -208,7 +188,7 @@
         (=vec3 rgb-at-max (oklab->lrgb (vec3 1
                                              (* S-cusp a)
                                              (* S-cusp b))))
-        (=float L-cusp (cbrt (/ (mmax rgb-at-max.r rgb-at-max.g rgb-at-max.b))))
+        (=float L-cusp (cube-root (/ (mmax rgb-at-max.r rgb-at-max.g rgb-at-max.b))))
         (=float C-cusp (* L-cusp S-cusp))
         (vec2 L-cusp C-cusp))
 
@@ -746,7 +726,7 @@
         (=vec3 rgb-scale (oklab->lrgb (vec3 l-vt
                                             (* a c-vt)
                                             (* b c-vt))))
-        (=float scale-l (cbrt (/ (mmax rgb-scale.r rgb-scale.g rgb-scale.b 0))))
+        (=float scale-l (cube-root (/ (mmax rgb-scale.r rgb-scale.g rgb-scale.b 0))))
 
         (*= l scale-l)
         (*= c scale-l)
@@ -783,7 +763,7 @@
         (=vec3 rgb-scale (oklab->lrgb (vec3 l-vt
                                             (* a c-vt)
                                             (* b c-vt))))
-        (=float scale-l (cbrt (/ (mmax rgb-scale.r rgb-scale.g rgb-scale.b 0))))
+        (=float scale-l (cube-root (/ (mmax rgb-scale.r rgb-scale.g rgb-scale.b 0))))
 
         (=-> l (/ scale-l))
         (=-> c (/ scale-l))
