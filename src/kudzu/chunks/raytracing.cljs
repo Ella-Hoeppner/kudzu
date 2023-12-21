@@ -5,7 +5,14 @@
 
 (def ray-chunk
   '{:structs {Ray [pos vec3
-                   dir vec3]}})
+                   dir vec3]}
+    :functions
+    {progress-ray
+     (Ray
+      [ray Ray
+       t float]
+      (Ray (+ ray.pos (* ray.dir t))
+           ray.dir))}})
 
 (def plane-intersection-chunk
   (combine-chunks
