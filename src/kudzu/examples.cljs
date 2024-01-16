@@ -205,10 +205,10 @@
                   .rgb
                   vec3))
       (= frag-color (as-> pos p
-                     (texture tex p)
-                     (.rgb p)
-                     (mod p (vec3 0.5))
-                     (vec4 p 1)))
+                      (texture tex p)
+                      (.rgb p)
+                      (mod p (vec3 0.5))
+                      (vec4 p 1)))
 
       ; In the case of modifying a variable, there are modifier versions.
       (=-> pos
