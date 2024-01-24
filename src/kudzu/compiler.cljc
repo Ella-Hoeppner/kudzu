@@ -7,7 +7,8 @@
                                       validate-defines
                                       validate-in-outs
                                       validate-precision
-                                      validate-functions]]
+                                      validate-functions
+                                      throw-str]]
             [kudzu.sorting :refer [sort-fns
                                    sort-structs]]))
 
@@ -126,7 +127,7 @@
                          (map expression->glsl args))
                    ")")))
 
-    :else (throw (str "KUDZU: Can't parse expression: " expression))))
+    :else (throw-str (str "KUDZU: Can't parse expression: " expression))))
 
 (defn is-statement-block? [statement]
   (and (seq? statement)
@@ -144,7 +145,7 @@
     (let [[statement-type & statement-args] statement]
       (if (#{:if "if"} statement-type)
         (if (not= 3 (count statement-args))
-          (throw
+          (throw-str
            (str "KUDZU: Invalid number of argments to :if\n\nArguments given:"
                 (apply str (interleave (repeat "\n") statement-args))))
           (let [[conditional & clauses] statement-args
@@ -197,7 +198,7 @@
                             1 [0 (first loop-args)]
                             2 loop-args
                             3 loop-args
-                            (throw (str "KUDZU: Invalid for loop definition "
+                            (throw-str (str "KUDZU: Invalid for loop definition "
                                         loop-definition)))
                           parse-value (fn [value]
                                         (if (number? value)
@@ -237,10 +238,13 @@
       (mapcat statement->lines
               (rest statement))
       (try (list (str (expression->glsl statement) ";\n"))
-           (catch :default e
-             (throw (ex-info (str "KUDZU: Error while compiling statement "
-                                  statement)
-                             e)))))))
+           #?(:cljs (catch :default e
+                      (throw (ex-info (str "KUDZU: Error while compiling statement "
+                                           statement)
+                                      e))))
+           #?(:clj (catch Exception e 
+                     (throw (Exception. (ex-info (str "KUDZU: Error while compiling statement " statement)
+                                                 e)))))))))
 
 (defn precision->glsl [[glsl-type type-precision]]
   (str "precision " type-precision " " glsl-type ";\n"))
