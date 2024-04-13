@@ -19,7 +19,7 @@
                  (- (length pos) radius))}})
 
 (def box-sdf-chunk
-  '{:functions {sdf-box
+  '{:functions {sd-box
                 (float
                  [pos vec3
                   dims vec3]
